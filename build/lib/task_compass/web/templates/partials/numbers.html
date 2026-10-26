@@ -1,0 +1,7 @@
+<div class="numbers">
+  <article><div class="muted">{{ ui.your_blind }}</div><div class="value">{{ task.blind_estimate_min }}</div></article>
+  <article><div class="muted">{{ ui.binding }}</div><div class="value">{{ task.binding_estimate_min }}</div></article>
+  <article><div class="muted">{{ ui.actual }}</div><div class="value">{{ task.actual_min }}</div>
+    {% if task.shortened_in_hindsight %}<div class="muted">{{ ui.shortened }}</div>{% endif %}</article>
+  {% if retro_plan %}<article><div class="muted">{{ ui.deviation }}</div><div class="value"><bdi>{{ "%.2f" | format(retro_plan.ratio) }}</bdi></div></article>{% endif %}
+</div>

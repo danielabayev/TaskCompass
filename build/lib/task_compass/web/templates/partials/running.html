@@ -1,0 +1,15 @@
+{% from "partials/macros.html" import hx, error_box %}
+<div class="split">
+  <div>
+    <h2>{{ ui.running_title }}</h2>
+    {{ error_box(error) }}
+    <p class="muted">{{ ui.time_left }}</p>
+    <div class="timer" data-deadline="{{ deadline.isoformat() }}" data-stage-url="{{ url_for('web.stage', task_id=task.id) }}">--:--</div>
+    <p class="muted">{{ ui.binding }}: {{ task.binding_estimate_min }} {{ ui.minutes }}
+      {% if task.extension_min %}· {{ ui.extension_used }} {{ task.extension_min }} {{ ui.minutes }}{% endif %}</p>
+    <form {{ hx(url_for('web.finish', task_id=task.id)) }}>
+      <button type="submit">{{ ui.finish_button }}</button>
+    </form>
+  </div>
+  {% include "partials/card.html" %}
+</div>

@@ -14,6 +14,7 @@
       <details><summary>{{ ui.show_sample }}</summary><p><bdi>{{ turn.sample_answer }}</bdi></p></details>
       {% endif %}
       <form {{ hx(url_for('web.answer', task_id=task.id)) }}>
+        <input type="hidden" name="round" value="{{ turn.round_no }}">
         <label>{{ ui.answer_label }}
           <textarea name="answer" rows="3" required autofocus>{{ form.get("answer", "") }}</textarea>
         </label>

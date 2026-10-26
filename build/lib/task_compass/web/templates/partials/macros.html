@@ -1,0 +1,14 @@
+{# Form attributes: HTMX swap of the stage, with a plain POST as fallback. #}
+{% macro hx(url) -%}
+method="post" action="{{ url }}" hx-post="{{ url }}" hx-target="#stage" hx-swap="outerHTML" hx-disabled-elt="find button[type=submit]"
+{%- endmacro %}
+
+{% macro error_box(error) -%}
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+{%- endmacro %}
+
+{% macro retry_button(task, label) -%}
+<form {{ hx(url_for('web.retry', task_id=task.id)) }}>
+  <button type="submit">{{ label }}</button>
+</form>
+{%- endmacro %}

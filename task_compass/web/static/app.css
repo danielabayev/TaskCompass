@@ -70,3 +70,6 @@ nav ul:first-child strong { font-size: 1.15rem; }
 table td, table th { text-align: start; }
 .htmx-request button[type="submit"], button.htmx-request { opacity: 0.6; pointer-events: none; }
 fieldset.choice-details { margin-inline-start: 1.5rem; }
+/* Checkpoint: show the details of the chosen way to continue only. */
+.choice-details { display: none; }
+label:has(> input:checked) + .choice-details { display: block; }

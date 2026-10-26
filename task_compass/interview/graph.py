@@ -28,7 +28,7 @@ class StepState(TypedDict, total=False):
     answer: str
     rounds_answered: int
     history: list[tuple[str, str]]
-    lessons: list[str]
+    lessons_by_type: dict[str, list[str]]  # latest retro lessons per task type
     # Output.
     outcome: str  # ask | ready | stuck
     next_field: str
@@ -89,7 +89,8 @@ def build_graph(gateway: Gateway):
         target = readiness.weakest_field(state["verdicts"])
         q = gateway.ask(
             task_id=state["task_id"], card=state["card"], verdicts=state["verdicts"],
-            field=target, history=state.get("history", []), lessons=state.get("lessons", []),
+            field=target, history=state.get("history", []),
+            lessons=state.get("lessons_by_type", {}).get(state["card"].get("type_key"), []),
         )
         return {"outcome": "ask", "next_field": target, "next_question": q.question,
                 "sample_answer": q.sample_answer}

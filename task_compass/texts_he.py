@@ -43,7 +43,7 @@ STUCK_EXPLAIN = "עברו 12 סבבים והכרטיס עדיין לא עובר 
 CLI_OPENING_PROMPT = "מה המשימה? "
 CLI_RETRY_PROMPT = "לחץ Enter כדי לנסות שוב..."
 ERROR_NO_KEY = "לא הוגדר מפתח API. צריך להוסיף ANTHROPIC_API_KEY לקובץ ‎.env ולהפעיל מחדש."
-ERROR_MINUTES = "צריך מספר שלם וחיובי של דקות."
+ERROR_MINUTES = "צריך מספר שלם של דקות, בין 1 ל-43200 (30 יום)."
 ERROR_BLIND_LOCKED = "ההערכה העיוורת כבר נשמרה ולא משתנה."
 ERROR_SECOND_EXTENSION = "כבר השתמשת בהארכה. אפשר לפצל, לצמצם או לעצור."
 ERROR_REDUCE_NEEDS_TESTS = "בצמצום צריך להשאיר לפחות מבחן סיום אחד."
@@ -181,3 +181,4 @@ OUTCOME_LABELS = {
 }
 
 PURPOSE_LABELS = {"judge": "בדיקת הכרטיס", "ask": "שאלות הראיון", "propose": "הצעת זמן"}
+ERROR_STALE_ANSWER = "השאלה הזאת כבר נענתה (אולי נשלח פעמיים). הנה השאלה הנוכחית."

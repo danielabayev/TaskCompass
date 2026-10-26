@@ -103,7 +103,8 @@ def _htmx() -> bool:
 
 @bp.post("/tasks/<int:task_id>/answer")
 def answer(task_id: int):
-    return _action(task_id, lambda: services().interview.answer(task_id, request.form.get("answer", "")))
+    round_no = request.form.get("round", type=int)
+    return _action(task_id, lambda: services().interview.answer(task_id, request.form.get("answer", ""), round_no))
 
 
 @bp.post("/tasks/<int:task_id>/retry")

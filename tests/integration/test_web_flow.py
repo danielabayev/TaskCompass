@@ -236,3 +236,16 @@ def test_unknown_task_is_404(env):
     fake, client, factory = env
     assert client.get("/tasks/999").status_code == 404
     assert client.post("/tasks/999/answer", data={"answer": "x"}).status_code == 404
+
+
+def test_double_submit_does_not_answer_the_next_question(env):
+    fake, client, factory = env
+    fake.queue("judge", judged(), judged(deliverable="מייל"))
+    fake.queue("ask", question("שאלה 1?"), question("שאלה 2?"))
+    client.post("/tasks", data={"opening": "מייל"})
+    client.post("/tasks/1/answer", data={"answer": "מייל", "round": "1"})
+    r = client.post("/tasks/1/answer", data={"answer": "מייל", "round": "1"})  # the same form again
+    assert "כבר נענתה" in r.text
+    s = factory()
+    assert [t.answer for t in s.get(Task, 1).turns] == ["מייל", None]
+    s.close()

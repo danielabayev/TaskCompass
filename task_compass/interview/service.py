@@ -69,7 +69,9 @@ class InterviewService:
             raise
         return task_id
 
-    def answer(self, task_id: int, text: str) -> None:
+    def answer(self, task_id: int, text: str, round_no: int | None = None) -> None:
+        """Save the answer to the open question. `round_no` (from the form)
+        guards against a double submit answering the next question too."""
         text = text.strip()
         if not text:
             raise FlowError(texts_he.ERROR_EMPTY_INPUT)
@@ -78,6 +80,8 @@ class InterviewService:
             turn = open_turn(task)
             if task.status != TaskStatus.INTERVIEW or turn is None:
                 raise FlowError(texts_he.ERROR_WRONG_STAGE)
+            if round_no is not None and round_no != turn.round_no:
+                raise FlowError(texts_he.ERROR_STALE_ANSWER)
             turn.answer = text
             turn.answered_at = datetime.now(timezone.utc)
         self._step(task_id)
@@ -148,20 +152,24 @@ class InterviewService:
                 "answer": answer,
                 "rounds_answered": len(answered),
                 "history": [(t.question, t.answer) for t in answered[-HISTORY_TURNS:]],
-                "lessons": self._lessons(session, task),
+                "lessons_by_type": self._lessons(session, task),
             }
 
-    def _lessons(self, session, task: Task) -> list[str]:
-        if task.category_id is None:
-            return []
-        rows = session.scalars(
-            select(Retro.lesson)
+    def _lessons(self, session, task: Task) -> dict[str, list[str]]:
+        """The latest retro lessons per task type. Loaded for every type because
+        on the first turn the type is not known until the judge suggests it."""
+        rows = session.execute(
+            select(Category.key, Retro.lesson)
             .join(Task, Task.id == Retro.task_id)
-            .where(Task.category_id == task.category_id, Retro.lesson.is_not(None), Task.id != task.id)
+            .join(Category, Category.id == Task.category_id)
+            .where(Retro.lesson.is_not(None), Task.id != task.id)
             .order_by(Retro.created_at.desc())
-            .limit(LESSONS)
-        )
-        return [r for r in rows if r.strip()]
+        ).all()
+        lessons: dict[str, list[str]] = {}
+        for key, lesson in rows:
+            if lesson.strip() and len(lessons.setdefault(key, [])) < LESSONS:
+                lessons[key].append(lesson)
+        return lessons
 
     def _save(self, task_id: int, result: dict) -> None:
         with session_scope(self.session_factory) as session:

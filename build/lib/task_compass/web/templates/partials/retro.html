@@ -1,0 +1,24 @@
+{% from "partials/macros.html" import hx, error_box %}
+<div class="split">
+  <div>
+    <h2>{{ ui.retro_title }}</h2>
+    {{ error_box(error) }}
+    {% include "partials/numbers.html" %}
+    <p>{{ {"over": ui.direction_over, "under": ui.direction_under}.get(retro_plan.direction, ui.direction_on) }}</p>
+    <form {{ hx(url_for('web.retro', task_id=task.id)) }}>
+      {% if retro_plan.ask_too_simple %}
+      <fieldset>
+        <legend>{{ ui.q_too_simple }}</legend>
+        <label><input type="radio" name="too_simple" value="yes" {% if form.get('too_simple') == 'yes' %}checked{% endif %}> {{ ui.yes }}</label>
+        <label><input type="radio" name="too_simple" value="no" {% if form.get('too_simple') == 'no' %}checked{% endif %}> {{ ui.no }}</label>
+        <fieldset class="choice-details"><label>{{ ui.q_hindsight }}<input type="number" name="hindsight" min="1" step="1" value="{{ form.get('hindsight', '') }}"></label></fieldset>
+      </fieldset>
+      {% endif %}
+      <label>{{ ui.q_retro_cause }}<textarea name="cause" rows="2">{{ form.get("cause", "") }}</textarea></label>
+      <label>{{ ui.q_definition_gap }}<textarea name="definition_gap" rows="2">{{ form.get("definition_gap", "") }}</textarea></label>
+      <label>{{ ui.q_lesson }}<textarea name="lesson" rows="2">{{ form.get("lesson", "") }}</textarea></label>
+      <button type="submit">{{ ui.retro_button }}</button>
+    </form>
+  </div>
+  {% include "partials/card.html" %}
+</div>

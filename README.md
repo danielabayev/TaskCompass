@@ -38,7 +38,7 @@ created automatically the first time the Docker volume is created.
 | Run the app | `flask --app task_compass.web run` |
 | Interview in the terminal | `python -m task_compass.cli "לסדר את המחסן"` |
 | Back up the database | `python -m scripts.backup` (writes `backups/*.sql`) |
-| Restore a backup | `python -m scripts.backup --restore backups\<file>.sql` |
+| Restore a backup (stop the app first) | `python -m scripts.backup --restore backups\<file>.sql` |
 | Fast tests (scripted model, free) | `pytest` |
 | Real-model behavior run (costs money) | `python -m scripts.run_behavior_live` |
 

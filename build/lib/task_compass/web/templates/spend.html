@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ ui.spend_title }}</h2>
+{% if spend.alert %}<p class="error" role="alert">{{ ui.spend_alert }}</p>{% endif %}
+<div class="numbers">
+  <article><div class="muted">{{ ui.spend_total }}</div><div class="value"><bdi>${{ "%.2f" | format(spend.total) }}</bdi></div></article>
+  <article><div class="muted">{{ ui.spend_cap }}</div><div class="value"><bdi>${{ "%.2f" | format(spend.cap) }}</bdi></div></article>
+</div>
+<progress value="{{ [spend.share, 1] | min }}" max="1"></progress>
+{% if spend.by_purpose %}
+<table>
+  <thead><tr><th>{{ ui.col_purpose }}</th><th>{{ ui.col_model }}</th><th>{{ ui.col_calls }}</th><th>{{ ui.col_cost }}</th></tr></thead>
+  <tbody>
+  {% for purpose, model, calls, cost in spend.by_purpose %}
+    <tr><td>{{ t.PURPOSE_LABELS.get(purpose, purpose) }}</td><td><bdi>{{ model }}</bdi></td><td>{{ calls }}</td><td><bdi>{{ "%.4f" | format(cost) }}</bdi></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+<p class="muted">{{ ui.spend_failed }}: {{ spend.failed_calls }}</p>
+{% else %}
+<p class="muted">{{ ui.no_calls }}</p>
+{% endif %}
+{% endblock %}
