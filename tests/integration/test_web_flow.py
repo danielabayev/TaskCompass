@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from task_compass.config import Settings
-from task_compass.models import Checkpoint, Retro, Task
+from task_compass.models import Task
 from task_compass.web import create_app
 from task_compass.wiring import build_services
 from tests.helpers import GOOD_CARD, judged, proposal, question
