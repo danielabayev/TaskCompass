@@ -1,0 +1,15 @@
+<div class="split">
+  <div>
+    <h2>{{ ui.closed_title }}</h2>
+    <p>{{ ui.outcome }}: {{ t.OUTCOME_LABELS.get(task.outcome, "") }}</p>
+    {% if task.actual_min %}{% include "partials/numbers.html" %}{% endif %}
+    {% if task.retro and task.retro.kind == "short" %}<p class="muted">{{ ui.short_retro }}</p>{% endif %}
+    {% if task.retro and task.retro.lesson %}<p>{{ ui.q_lesson }} <bdi>{{ task.retro.lesson }}</bdi></p>{% endif %}
+    {% if children %}
+      <h3>{{ ui.children }}</h3>
+      <ul>{% for c in children %}<li><a href="{{ url_for('web.task_page', task_id=c.id) }}"><bdi>{{ c.title }}</bdi></a></li>{% endfor %}</ul>
+    {% endif %}
+    {% if task.parent_id %}<p class="muted"><a href="{{ url_for('web.task_page', task_id=task.parent_id) }}">{{ ui.parent }} #{{ task.parent_id }}</a></p>{% endif %}
+  </div>
+  {% include "partials/card.html" %}
+</div>

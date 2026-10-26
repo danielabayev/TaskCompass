@@ -1,0 +1,28 @@
+{% from "partials/macros.html" import hx, error_box, retry_button %}
+<div class="split">
+  <div>
+    <h2><bdi>{{ task.opening_text }}</bdi></h2>
+    {{ error_box(error) }}
+    {% if pending %}
+      <p>{{ ui.pending_interview if task.turns else "" }}</p>
+      {{ retry_button(task, ui.retry if task.turns or error else ui.start_interview) }}
+    {% elif turn %}
+      {% if turn.note %}<p class="note">{{ turn.note }}</p>{% endif %}
+      <p class="muted">{{ ui.round }} {{ turn.round_no }} {{ ui.of }} {{ max_rounds }}</p>
+      <p class="question"><bdi>{{ turn.question }}</bdi></p>
+      {% if turn.sample_answer %}
+      <details><summary>{{ ui.show_sample }}</summary><p><bdi>{{ turn.sample_answer }}</bdi></p></details>
+      {% endif %}
+      <form {{ hx(url_for('web.answer', task_id=task.id)) }}>
+        <input type="hidden" name="round" value="{{ turn.round_no }}">
+        <label>{{ ui.answer_label }}
+          <textarea name="answer" rows="3" required autofocus>{{ form.get("answer", "") }}</textarea>
+        </label>
+        <button type="submit">{{ ui.answer_button }}</button>
+        <span class="htmx-indicator muted">{{ ui.waiting }}</span>
+      </form>
+      <p class="muted">{{ ui.stuck_hint }}</p>
+    {% endif %}
+  </div>
+  {% include "partials/card.html" %}
+</div>

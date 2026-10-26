@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ ui.history_title }}</h2>
+<div class="overflow-auto">
+<table>
+  <thead><tr>
+    <th>{{ ui.col_task }}</th><th>{{ ui.col_type }}</th><th>{{ ui.col_status }}</th>
+    <th>{{ ui.col_blind }}</th><th>{{ ui.col_binding }}</th><th>{{ ui.col_actual }}</th><th>{{ ui.col_ratio }}</th>
+  </tr></thead>
+  <tbody>
+  {% for task in tasks %}
+    <tr>
+      <td><a href="{{ url_for('web.task_page', task_id=task.id) }}"><bdi>{{ task.title }}</bdi></a>
+        {% if task.parent_id %}<span class="muted">· {{ ui.parent }} #{{ task.parent_id }}</span>{% endif %}</td>
+      <td>{{ task.category.name_he if task.category else "" }}</td>
+      <td>{{ t.OUTCOME_LABELS[task.outcome] if task.outcome else t.STATUS_LABELS[task.status] }}</td>
+      <td>{{ task.blind_estimate_min | minutes }}</td>
+      <td>{{ task.binding_estimate_min | minutes }}</td>
+      <td>{{ task.actual_min | minutes }}{% if task.shortened_in_hindsight %} <span class="muted">({{ ui.shortened }})</span>{% endif %}</td>
+      <td>{% if task.actual_min and task.blind_estimate_min %}<bdi>{{ "%.2f" | format(task.actual_min / task.blind_estimate_min) }}</bdi>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

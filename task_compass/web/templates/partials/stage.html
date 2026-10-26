@@ -1,0 +1,12 @@
+{# One screen per stage. Swapped in place by HTMX after every action. #}
+<section id="stage">
+{% if task.status == "interview" %}{% include "partials/interview.html" %}
+{% elif task.status == "stuck" %}{% include "partials/stuck.html" %}
+{% elif task.status == "estimate" %}{% include "partials/estimate.html" %}
+{% elif task.status == "planned" %}{% include "partials/planned.html" %}
+{% elif task.status == "running" %}{% include "partials/running.html" %}
+{% elif task.status == "checkpoint" %}{% include "partials/checkpoint.html" %}
+{% elif task.status == "retro" %}{% include "partials/retro.html" %}
+{% else %}{% include "partials/closed.html" %}
+{% endif %}
+</section>

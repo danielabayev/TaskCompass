@@ -1,0 +1,19 @@
+{% from "partials/macros.html" import hx, error_box %}
+<div class="split">
+  <div>
+    <h2>{{ ui.stuck_title }}</h2>
+    {{ error_box(error) }}
+    <p>{{ t.STUCK_EXPLAIN }}</p>
+    <form {{ hx(url_for('web.resolve_stuck', task_id=task.id)) }}>
+      <input type="hidden" name="choice" value="split">
+      <label>{{ ui.split_child_label }}<input name="child" required></label>
+      <button type="submit">{{ ui.split_option }}</button>
+    </form>
+    <form {{ hx(url_for('web.resolve_stuck', task_id=task.id)) }}>
+      <input type="hidden" name="choice" value="investigate">
+      <label>{{ ui.investigate_child_label }}<input name="child"></label>
+      <button type="submit" class="secondary">{{ ui.investigate_option }}</button>
+    </form>
+  </div>
+  {% include "partials/card.html" %}
+</div>

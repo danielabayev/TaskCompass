@@ -1,0 +1,51 @@
+{% from "partials/macros.html" import hx, error_box, retry_button %}
+<div class="split">
+  <div>
+    <h2>{{ ui.estimate_title }}</h2>
+    {{ error_box(error) }}
+    {% if estimate_step == "blind" %}
+      <form {{ hx(url_for('web.blind', task_id=task.id)) }}>
+        <label>{{ ui.blind_label }}
+          <input type="number" name="minutes" min="1" step="1" required autofocus value="{{ form.get('minutes', '') }}">
+        </label>
+        <p class="muted">{{ ui.blind_hint }}</p>
+        <button type="submit">{{ ui.blind_button }}</button>
+      </form>
+    {% elif estimate_step == "pending" %}
+      <p>{{ ui.pending_estimate }}</p>
+      {{ retry_button(task, ui.retry) }}
+    {% else %}
+      <div class="numbers">
+        <article><div class="muted">{{ ui.your_blind }}</div><div class="value">{{ task.blind_estimate_min }}</div>{{ ui.minutes }}</article>
+        <article><div class="muted">{{ ui.model_estimate }}</div><div class="value">{{ task.model_estimate_min }}</div>{{ ui.minutes }}</article>
+      </div>
+      <details {% if estimate_step == "clarify" %}open{% endif %}>
+        <summary>{{ ui.breakdown }}</summary>
+        <ul>{% for s in task.model_breakdown or [] %}<li><bdi>{{ s.title }}</bdi> · {{ s.minutes }} {{ ui.min_short }}</li>{% endfor %}</ul>
+      </details>
+      {% if estimate_step == "clarify" %}
+        <h3>{{ ui.gap_title }}</h3>
+        <form {{ hx(url_for('web.clarify', task_id=task.id)) }}>
+          <label>{{ ui.gap_hint }}<textarea name="clarification" rows="3" required>{{ form.get("clarification", "") }}</textarea></label>
+          <button type="submit">{{ ui.clarify_button }}</button>
+        </form>
+      {% else %}
+        {% if task.clarification_note %}<p class="muted">{{ ui.clarification_given }}: <bdi>{{ task.clarification_note }}</bdi></p>{% endif %}
+        <article>
+          <div class="muted">{{ ui.corrected }}</div>
+          <div class="value"><strong>{{ task.corrected_estimate_min }}</strong> {{ ui.minutes }}</div>
+          <div class="muted">{{ ui.personal_correction }}: ×<bdi>{{ "%.2f" | format(task.calibration_factor or 1) }}</bdi>
+            ({{ {"type": ui.correction_type, "global": ui.correction_global}.get(task.calibration_source, ui.correction_none) }})</div>
+        </article>
+        <form {{ hx(url_for('web.binding', task_id=task.id)) }}>
+          <label>{{ ui.binding_label }}
+            <input type="number" name="minutes" min="1" step="1" required value="{{ form.get('minutes', task.corrected_estimate_min) }}">
+          </label>
+          <p class="muted">{{ ui.binding_hint }}</p>
+          <button type="submit">{{ ui.binding_button }}</button>
+        </form>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% include "partials/card.html" %}
+</div>

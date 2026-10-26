@@ -1,0 +1,13 @@
+{% from "partials/macros.html" import hx, error_box %}
+<div class="split">
+  <div>
+    <h2>{{ ui.planned_title }}</h2>
+    {{ error_box(error) }}
+    <p>{{ ui.binding }}: <strong>{{ task.binding_estimate_min }}</strong> {{ ui.minutes }}</p>
+    <p>{{ ui.first_step }}: <bdi>{{ task.first_step }}</bdi></p>
+    <form {{ hx(url_for('web.start', task_id=task.id)) }}>
+      <button type="submit">{{ ui.start_button }}</button>
+    </form>
+  </div>
+  {% include "partials/card.html" %}
+</div>
