@@ -5,7 +5,8 @@ the failure paths from the build plan ("API failures")."""
 import pytest
 from sqlalchemy import select
 
-from task_compass.interview.service import InterviewError, InterviewService, is_pending, open_turn
+from task_compass.errors import FlowError
+from task_compass.interview.service import InterviewService, is_pending, open_turn
 from task_compass.llm.gateway import CallFailed, InvalidAnswer, LLMError
 from task_compass.models import InterviewTurn, LlmCall, Task
 from tests.helpers import GOOD_CARD, bad, judged, make_gateway, question
@@ -179,7 +180,7 @@ def test_change_to_inactive_type_is_rejected(setup):
     fake.queue("judge", judged())
     fake.queue("ask", question())
     task_id = svc.start("משהו")
-    with pytest.raises(InterviewError):
+    with pytest.raises(FlowError):
         svc.change_type(task_id, "nonexistent")
 
 
@@ -265,5 +266,5 @@ def test_answer_on_a_finished_interview_is_rejected(setup):
     fake, svc, factory = setup
     fake.queue("judge", judged(**GOOD_CARD))
     task_id = svc.start("לכתוב מייל")
-    with pytest.raises(InterviewError):
+    with pytest.raises(FlowError):
         svc.answer(task_id, "עוד משהו")

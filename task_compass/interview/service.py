@@ -12,16 +12,13 @@ from sqlalchemy.orm import sessionmaker
 
 from task_compass import texts_he
 from task_compass.db import session_scope
+from task_compass.errors import FlowError
 from task_compass.interview.graph import build_graph
-from task_compass.llm.gateway import Gateway
+from task_compass.llm.gateway import Gateway, LLMError
 from task_compass.models import Category, InterviewTurn, Retro, Task, TaskOutcome, TaskStatus
 
 HISTORY_TURNS = 6  # earlier Q&A pairs given to the interviewer
 LESSONS = 3  # retro lessons from earlier tasks of the same type
-
-
-class InterviewError(Exception):
-    """A request that does not fit the task's current state."""
 
 
 def card_of(task: Task) -> dict:
@@ -59,24 +56,28 @@ class InterviewService:
         Returns the task id even if the model call fails (the task is then pending)."""
         opening_text = opening_text.strip()
         if not opening_text:
-            raise InterviewError(texts_he.ERROR_EMPTY_INPUT)
+            raise FlowError(texts_he.ERROR_EMPTY_INPUT)
         with session_scope(self.session_factory) as session:
             task = Task(opening_text=opening_text, parent_id=parent_id)
             session.add(task)
             session.flush()
             task_id = task.id
-        self._step(task_id)
+        try:
+            self._step(task_id)
+        except LLMError as exc:
+            exc.task_id = task_id  # the task exists and is pending; callers can show it
+            raise
         return task_id
 
     def answer(self, task_id: int, text: str) -> None:
         text = text.strip()
         if not text:
-            raise InterviewError(texts_he.ERROR_EMPTY_INPUT)
+            raise FlowError(texts_he.ERROR_EMPTY_INPUT)
         with session_scope(self.session_factory) as session:
             task = self._task(session, task_id)
             turn = open_turn(task)
             if task.status != TaskStatus.INTERVIEW or turn is None:
-                raise InterviewError(texts_he.ERROR_WRONG_STAGE)
+                raise FlowError(texts_he.ERROR_WRONG_STAGE)
             turn.answer = text
             turn.answered_at = datetime.now(timezone.utc)
         self._step(task_id)
@@ -94,10 +95,10 @@ class InterviewService:
         with session_scope(self.session_factory) as session:
             task = self._task(session, task_id)
             if task.status != TaskStatus.INTERVIEW:
-                raise InterviewError(texts_he.ERROR_WRONG_STAGE)
+                raise FlowError(texts_he.ERROR_WRONG_STAGE)
             category = session.scalar(select(Category).where(Category.key == type_key, Category.active))
             if category is None:
-                raise InterviewError(texts_he.ERROR_UNKNOWN_TYPE)
+                raise FlowError(texts_he.ERROR_UNKNOWN_TYPE)
             if task.category_id == category.id:
                 return
             task.category_id = category.id
@@ -110,11 +111,11 @@ class InterviewService:
         """After 12 rounds: split off a smaller piece, or open an investigation.
         No partial card is created; the original task is closed with that outcome."""
         if choice not in (TaskOutcome.SPLIT, TaskOutcome.INVESTIGATE):
-            raise InterviewError(texts_he.ERROR_WRONG_STAGE)
+            raise FlowError(texts_he.ERROR_WRONG_STAGE)
         with session_scope(self.session_factory) as session:
             task = self._task(session, task_id)
             if task.status != TaskStatus.STUCK:
-                raise InterviewError(texts_he.ERROR_WRONG_STAGE)
+                raise FlowError(texts_he.ERROR_WRONG_STAGE)
             task.status, task.outcome = TaskStatus.CLOSED, choice
             if choice == TaskOutcome.INVESTIGATE and not child_opening.strip():
                 child_opening = texts_he.INVESTIGATE_PREFIX + task.opening_text
@@ -188,6 +189,6 @@ class InterviewService:
     def _task(session, task_id: int) -> Task:
         task = session.get(Task, task_id)
         if task is None:
-            raise InterviewError(texts_he.ERROR_NOT_FOUND)
+            raise FlowError(texts_he.ERROR_NOT_FOUND)
         return task
 

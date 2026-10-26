@@ -36,6 +36,10 @@ class CallFailed(Exception):
     """The call itself failed after the client's own retries (network, overload, ...)."""
 
 
+class MissingKey(CallFailed):
+    """ANTHROPIC_API_KEY is not configured."""
+
+
 class LLMError(Exception):
     """Final failure. `message_he` is shown to the user next to a retry button."""
 
@@ -158,6 +162,8 @@ class Gateway:
                     raise LLMError(texts_he.ERROR_INVALID_ANSWER) from exc
                 prompt = f"{user}\n\n# Your previous answer was rejected\n{exc}\nAnswer again, following the rules exactly."
                 continue
+            except MissingKey as exc:
+                raise LLMError(texts_he.ERROR_NO_KEY) from exc
             except CallFailed as exc:
                 self._log(purpose, model, task_id, exc, success=False, error=str(exc)[:200])
                 raise LLMError(texts_he.ERROR_CALL_FAILED) from exc

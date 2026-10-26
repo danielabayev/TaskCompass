@@ -1,0 +1,72 @@
+/* Task Compass styles on top of Pico.css. Light only, RTL, logical properties. */
+
+@font-face {
+  font-family: "Heebo";
+  font-weight: 400;
+  src: url("vendor/heebo/heebo-hebrew-400-normal.woff2") format("woff2");
+  unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: "Heebo";
+  font-weight: 700;
+  src: url("vendor/heebo/heebo-hebrew-700-normal.woff2") format("woff2");
+  unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+}
+@font-face {
+  font-family: "Heebo";
+  font-weight: 400;
+  src: url("vendor/heebo/heebo-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF;
+}
+@font-face {
+  font-family: "Heebo";
+  font-weight: 700;
+  src: url("vendor/heebo/heebo-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF;
+}
+
+:root {
+  --pico-font-family: "Heebo", system-ui, sans-serif;
+  --pass: #1a7f37;
+  --fail: #b42318;
+  --unchecked: #6e7781;
+}
+
+main.container { padding-block: 1rem 3rem; }
+nav ul:first-child strong { font-size: 1.15rem; }
+
+/* Interview: question on the reading side, card on the other. */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 2rem;
+  align-items: start;
+}
+@media (max-width: 768px) {
+  .split { grid-template-columns: minmax(0, 1fr); }
+}
+
+.question { font-size: 1.25rem; font-weight: 700; margin-block-end: 0.75rem; }
+.note { white-space: pre-line; border-inline-start: 4px solid var(--fail); padding-inline-start: 0.75rem; }
+.error { color: var(--fail); border: 1px solid var(--fail); border-radius: 6px; padding: 0.75rem; }
+.muted { color: var(--unchecked); font-size: 0.9rem; }
+
+.card-field { margin-block-end: 0.75rem; }
+.card-field .label { font-weight: 700; }
+.card-field .reason { font-size: 0.85rem; color: var(--fail); }
+.mark { display: inline-block; min-inline-size: 1.4em; font-weight: 700; }
+.mark.pass { color: var(--pass); }
+.mark.fail { color: var(--fail); }
+.mark.unchecked { color: var(--unchecked); }
+.card-field ul { margin-block: 0.25rem; padding-inline-start: 1.25rem; }
+
+.numbers { display: flex; flex-wrap: wrap; gap: 1rem; }
+.numbers article { flex: 1 1 10rem; margin: 0; text-align: center; }
+.numbers .value { font-size: 1.75rem; font-weight: 700; }
+
+.timer { font-size: 3rem; font-weight: 700; text-align: center; font-variant-numeric: tabular-nums; }
+.timer.over { color: var(--fail); }
+
+table td, table th { text-align: start; }
+.htmx-request button[type="submit"], button.htmx-request { opacity: 0.6; pointer-events: none; }
+fieldset.choice-details { margin-inline-start: 1.5rem; }

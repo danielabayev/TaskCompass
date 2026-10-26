@@ -1,0 +1,33 @@
+{# The task card with a pass / fail / not-checked mark per field. #}
+{% set editable = task.status == "interview" and not pending %}
+<article class="task-card">
+  <header><strong>{{ t.CARD_TITLE }}</strong></header>
+  {% for name, label in t.FIELD_LABELS.items() %}
+    {% set verdict = (task.verdicts or {}).get(name, {}) %}
+    {% set status = verdict.get("status", "unchecked") %}
+    <div class="card-field">
+      <span class="mark {{ status }}" title="{{ t.MARK_LABELS[status] }}" aria-label="{{ t.MARK_LABELS[status] }}">{{ t.MARKS[status] }}</span>
+      <span class="label">{{ label }}:</span>
+      {% if name == "type" %}
+        {% if editable %}
+          <form {{ hx(url_for('web.change_type', task_id=task.id)) }} hx-trigger="change">
+            <select name="type_key" aria-label="{{ ui.change_type }}">
+              {% if not task.category %}<option value="" selected disabled>—</option>{% endif %}
+              {% for c in categories %}
+                <option value="{{ c.key }}" {% if task.category and c.id == task.category_id %}selected{% endif %}>{{ c.name_he }}</option>
+              {% endfor %}
+            </select>
+            <noscript><button type="submit">{{ ui.change_type }}</button></noscript>
+          </form>
+        {% else %}
+          {{ task.category.name_he if task.category else "" }}
+        {% endif %}
+      {% elif name in ("done_tests", "boundaries") %}
+        <ul>{% for item in task[name] or [] %}<li><bdi>{{ item }}</bdi></li>{% endfor %}</ul>
+      {% else %}
+        <bdi>{{ task[name] or "" }}</bdi>
+      {% endif %}
+      {% if status == "fail" and verdict.get("reason") %}<div class="reason">{{ verdict.reason }}</div>{% endif %}
+    </div>
+  {% endfor %}
+</article>

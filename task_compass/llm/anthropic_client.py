@@ -4,7 +4,7 @@ import anthropic
 import pydantic
 
 from task_compass import config
-from task_compass.llm.gateway import CallFailed, Completion, InvalidAnswer
+from task_compass.llm.gateway import CallFailed, Completion, InvalidAnswer, MissingKey
 
 # Thinking depth per call. The judge is a short classification-like task.
 EFFORT = {"judge": "low", "ask": "medium", "propose": "medium"}
@@ -13,17 +13,18 @@ EFFORT = {"judge": "low", "ask": "medium", "propose": "medium"}
 class AnthropicClient:
     def __init__(self, settings: config.Settings | None = None):
         settings = settings or config.Settings()
-        if not settings.anthropic_api_key:
-            raise RuntimeError("ANTHROPIC_API_KEY is not set in .env")
+        self._has_key = bool(settings.anthropic_api_key)
         # The SDK retries overload (529), rate limits (429), 5xx and network
         # errors itself, with growing waits.
         self._client = anthropic.Anthropic(
-            api_key=settings.anthropic_api_key,
+            api_key=settings.anthropic_api_key or "missing",
             max_retries=settings.llm_max_retries,
             timeout=settings.llm_timeout_s,
         )
 
     def complete(self, *, purpose, model, system, user, schema) -> Completion:
+        if not self._has_key:
+            raise MissingKey("ANTHROPIC_API_KEY is not set")
         try:
             response = self._client.messages.parse(
                 model=model,

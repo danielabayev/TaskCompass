@@ -1,0 +1,38 @@
+{% from "partials/macros.html" import hx, error_box %}
+<div class="split">
+  <div>
+    <h2>{{ ui.checkpoint_title }}</h2>
+    {{ error_box(error) }}
+    <form {{ hx(url_for('web.checkpoint', task_id=task.id)) }}>
+      <fieldset>
+        <legend>{{ ui.q_done_tests }}</legend>
+        {% for test in task.done_tests or [] %}
+          <label><input type="checkbox" name="met_{{ loop.index0 }}" {% if form.get('met_' ~ loop.index0) %}checked{% endif %}> <bdi>{{ test }}</bdi></label>
+        {% endfor %}
+      </fieldset>
+      <label>{{ ui.q_remaining }}<textarea name="remaining" rows="2">{{ form.get("remaining", "") }}</textarea></label>
+      <label>{{ ui.q_cause }}<textarea name="cause" rows="2">{{ form.get("cause", "") }}</textarea></label>
+      <fieldset>
+        <legend>{{ ui.how_continue }}</legend>
+        {% set chosen = form.get("choice", "") %}
+        {% if "extend" in allowed_choices %}
+          <label><input type="radio" name="choice" value="extend" required {% if chosen == "extend" %}checked{% endif %}> {{ ui.choice_extend }}</label>
+          <fieldset class="choice-details"><label>{{ ui.extend_minutes }}<input type="number" name="extend_minutes" min="1" step="1" value="{{ form.get('extend_minutes', '') }}"></label></fieldset>
+        {% endif %}
+        <label><input type="radio" name="choice" value="reduce" required {% if chosen == "reduce" %}checked{% endif %}> {{ ui.choice_reduce }}</label>
+        <fieldset class="choice-details">
+          <label>{{ ui.reduce_tests }}<textarea name="reduce_tests" rows="3">{{ form.get("reduce_tests", (task.done_tests or []) | join("\n")) }}</textarea></label>
+          <label>{{ ui.reduce_minutes }}<input type="number" name="reduce_minutes" min="1" step="1" value="{{ form.get('reduce_minutes', '') }}"></label>
+        </fieldset>
+        <label><input type="radio" name="choice" value="split" required {% if chosen == "split" %}checked{% endif %}> {{ ui.choice_split }}</label>
+        <fieldset class="choice-details"><label>{{ ui.split_children }}<textarea name="children" rows="3">{{ form.get("children", "") }}</textarea></label></fieldset>
+        <label><input type="radio" name="choice" value="stop" required {% if chosen == "stop" %}checked{% endif %}> {{ ui.choice_stop }}</label>
+      </fieldset>
+      <button type="submit">{{ ui.checkpoint_button }}</button>
+    </form>
+    <form {{ hx(url_for('web.finish', task_id=task.id)) }}>
+      <button type="submit" class="secondary outline">{{ ui.finished_anyway }}</button>
+    </form>
+  </div>
+  {% include "partials/card.html" %}
+</div>
