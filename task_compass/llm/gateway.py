@@ -130,10 +130,11 @@ class Gateway:
 
         return self._call("ask", config.STRONG_MODEL, load_prompt("ask"), user, Question, task_id, one_question)
 
-    def propose(self, *, task_id: int | None, card: dict, clarification: str | None) -> Proposal:
+    def propose(self, *, task_id: int | None, card: dict, clarifications: list[str]) -> Proposal:
         user = _sections(
             ("Task card", _json(card)),
-            ("Clarification from the person", clarification or "(none)"),
+            ("Clarifications from the person (oldest first)",
+             "\n".join(f"- {c}" for c in clarifications) if clarifications else "(none)"),
         )
 
         def sane(p: Proposal) -> None:

@@ -23,7 +23,7 @@ def estimate_step(task: Task) -> str:
         return "blind"
     if task.model_estimate_min is None:
         return "pending"
-    if task.needed_clarification and task.clarification_note is None:
+    if task.needed_clarification and not task.clarifications:
         return "clarify"
     return "binding"
 
@@ -52,30 +52,34 @@ class EstimateService:
             if task.blind_estimate_min is not None:
                 raise FlowError(texts_he.ERROR_BLIND_LOCKED)
             task.blind_estimate_min = minutes
-        self._propose(task_id, clarification=None)
+        self._propose(task_id, clarifications=[])
 
     def retry(self, task_id: int) -> None:
         with session_scope(self.session_factory) as session:
             task = get_task(session, task_id, TaskStatus.ESTIMATE)
             step = estimate_step(task)
-            clarification = task.clarification_note
+            clarifications = list(task.clarifications or [])
         if step == "pending":
-            self._propose(task_id, clarification)
+            self._propose(task_id, clarifications)
 
     def clarify(self, task_id: int, text: str) -> None:
+        """Add a clarification round and get a new proposal. Required once when
+        the gap is 2x or more; after that the person may ask for more rounds
+        before setting the binding estimate."""
         text = (text or "").strip()
         if not text:
             raise FlowError(texts_he.ERROR_EMPTY_INPUT)
         with session_scope(self.session_factory) as session:
             task = get_task(session, task_id, TaskStatus.ESTIMATE)
-            if estimate_step(task) != "clarify":
+            if estimate_step(task) not in ("clarify", "binding"):
                 raise FlowError(texts_he.ERROR_WRONG_STAGE)
-            task.clarification_note = text
+            task.clarifications = [*(task.clarifications or []), text]
+            clarifications = list(task.clarifications)
             # The proposal is redone with the clarification; clear it first so a
             # failed call leaves the task visibly pending, not half-updated.
             task.model_estimate_min = None
             task.model_breakdown = None
-        self._propose(task_id, text)
+        self._propose(task_id, clarifications)
 
     def set_binding(self, task_id: int, raw_minutes) -> None:
         minutes = require_minutes(raw_minutes)
@@ -86,15 +90,15 @@ class EstimateService:
             task.binding_estimate_min = minutes
             task.status = TaskStatus.PLANNED
 
-    def _propose(self, task_id: int, clarification: str | None) -> None:
+    def _propose(self, task_id: int, clarifications: list[str]) -> None:
         with session_scope(self.session_factory) as session:
             card = card_of(get_task(session, task_id))
-        proposal = self.gateway.propose(task_id=task_id, card=card, clarification=clarification)
+        proposal = self.gateway.propose(task_id=task_id, card=card, clarifications=clarifications)
         with session_scope(self.session_factory) as session:
             task = get_task(session, task_id, TaskStatus.ESTIMATE)
             task.model_breakdown = [s.model_dump() for s in proposal.subtasks]
             task.model_estimate_min = sum(s.minutes for s in proposal.subtasks)
-            if clarification is None:
+            if not clarifications:  # the 2x check runs on the first proposal only
                 task.needed_clarification = estimates.needs_clarification(
                     task.blind_estimate_min, task.model_estimate_min)
             cal = calibration.factor_for(task.category.key, calibration_samples(session))

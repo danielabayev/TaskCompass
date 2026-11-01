@@ -94,7 +94,9 @@ class Task(UserOwned, Base):
     calibration_factor: Mapped[float | None] = mapped_column(Float)
     calibration_source: Mapped[str | None] = mapped_column(String(10))
     binding_estimate_min: Mapped[int | None] = mapped_column(Integer)
-    clarification_note: Mapped[str | None] = mapped_column(Text)
+    # Clarification rounds, oldest first. The first is required when the gap is
+    # 2x or more (needed_clarification); the person can ask for more.
+    clarifications: Mapped[list] = mapped_column(JSONB, default=list)
     needed_clarification: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Execution.

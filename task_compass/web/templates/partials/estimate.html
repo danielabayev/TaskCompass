@@ -30,7 +30,10 @@
           <button type="submit">{{ ui.clarify_button }}</button>
         </form>
       {% else %}
-        {% if task.clarification_note %}<p class="muted">{{ ui.clarification_given }}: <bdi>{{ task.clarification_note }}</bdi></p>{% endif %}
+        {% if task.clarifications %}
+          <p class="muted">{{ ui.clarification_given }}:</p>
+          <ol class="muted">{% for c in task.clarifications %}<li><bdi>{{ c }}</bdi></li>{% endfor %}</ol>
+        {% endif %}
         <article>
           <div class="muted">{{ ui.corrected }}</div>
           <div class="value"><strong>{{ task.corrected_estimate_min }}</strong> {{ ui.minutes }}</div>
@@ -44,6 +47,13 @@
           <p class="muted">{{ ui.binding_hint }}</p>
           <button type="submit">{{ ui.binding_button }}</button>
         </form>
+        <details {% if form.get("clarification") %}open{% endif %}>
+          <summary>{{ ui.another_clarification }}</summary>
+          <form {{ hx(url_for('web.clarify', task_id=task.id)) }}>
+            <label>{{ ui.another_clarification_hint }}<textarea name="clarification" rows="3" required>{{ form.get("clarification", "") }}</textarea></label>
+            <button type="submit" class="secondary">{{ ui.clarify_button }}</button>
+          </form>
+        </details>
       {% endif %}
     {% endif %}
   </div>

@@ -114,9 +114,51 @@ def test_gap_triggers_clarification_then_binding(env):
     fake.queue("propose", proposal(20, 20))
     r = client.post("/tasks/1/clarify", data={"clarification": "רק טיוטה אחת"}, headers=HX)
     t = task_row(factory)
-    assert t.clarification_note == "רק טיוטה אחת" and t.model_estimate_min == 40 and t.needed_clarification
+    assert t.clarifications == ["רק טיוטה אחת"] and t.model_estimate_min == 40 and t.needed_clarification
     assert "ההערכה המחייבת" in r.text
     assert "רק טיוטה אחת" in fake.calls[-1]["user"]
+
+
+def test_person_can_ask_for_more_clarification_rounds(env):
+    fake, client, factory = env
+    fake.queue("judge", judged(**GOOD_CARD))
+    client.post("/tasks", data={"opening": "מייל"})
+    fake.queue("propose", proposal(40, 30))  # 70 vs 30: the first round is required
+    client.post("/tasks/1/blind", data={"minutes": "30"}, headers=HX)
+    fake.queue("propose", proposal(30, 30))
+    r = client.post("/tasks/1/clarify", data={"clarification": "רק טיוטה אחת"}, headers=HX)
+    assert "לבקש סבב הבהרה נוסף" in r.text  # offered on the binding screen
+    fake.queue("propose", proposal(20, 15))
+    r = client.post("/tasks/1/clarify", data={"clarification": "בלי צרופות"}, headers=HX)
+    t = task_row(factory)
+    assert t.clarifications == ["רק טיוטה אחת", "בלי צרופות"]
+    assert t.model_estimate_min == 35 and t.blind_estimate_min == 30
+    assert "- רק טיוטה אחת\n- בלי צרופות" in fake.calls[-1]["user"]  # the model sees every round
+    assert "ההערכה המחייבת" in r.text
+
+
+def test_extra_round_is_offered_without_a_gap_and_makes_the_retro_deep(env):
+    fake, client, factory = env
+    fake.queue("judge", judged(**GOOD_CARD))
+    client.post("/tasks", data={"opening": "מייל"})
+    fake.queue("propose", proposal(25, 25), proposal(20, 20))
+    client.post("/tasks/1/blind", data={"minutes": "30"}, headers=HX)  # 50 vs 30: no gap
+    client.post("/tasks/1/clarify", data={"clarification": "יש כבר תבנית"}, headers=HX)
+    t = task_row(factory)
+    assert not t.needed_clarification and t.clarifications == ["יש כבר תבנית"]
+    client.post("/tasks/1/binding", data={"minutes": "30"}, headers=HX)
+    client.post("/tasks/1/start", headers=HX)
+    shift_start(factory, 29)
+    client.post("/tasks/1/finish", headers=HX)  # on time, but a clarification round happened
+    assert task_row(factory).status == "retro"
+
+
+def test_clarify_is_rejected_before_the_proposal(env):
+    fake, client, factory = env
+    fake.queue("judge", judged(**GOOD_CARD))
+    client.post("/tasks", data={"opening": "מייל"})
+    r = client.post("/tasks/1/clarify", data={"clarification": "x"}, headers=HX)
+    assert "לא מתאימה" in r.text and task_row(factory).clarifications == []
 
 
 def test_no_gap_goes_straight_to_binding(env):

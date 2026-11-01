@@ -22,7 +22,7 @@ class RetroPlan:
 
 def plan_for(task: Task) -> RetroPlan:
     ratio = retro.deviation_ratio(task.actual_min, task.binding_estimate_min)
-    unusual = bool(task.checkpoints) or task.needed_clarification or task.scope_reduced \
+    unusual = bool(task.checkpoints) or bool(task.clarifications) or task.scope_reduced \
         or task.outcome in (TaskOutcome.STOPPED, TaskOutcome.SPLIT)
     direction = retro.direction(ratio)
     return RetroPlan(
