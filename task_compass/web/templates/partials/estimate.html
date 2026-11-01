@@ -26,7 +26,7 @@
       {% if estimate_step == "clarify" %}
         <h3>{{ ui.gap_title }}</h3>
         <form {{ hx(url_for('web.clarify', task_id=task.id)) }}>
-          <label>{{ ui.gap_hint }}<textarea name="clarification" rows="3" required>{{ form.get("clarification", "") }}</textarea></label>
+          <label>{{ ui.gap_hint }}<textarea name="clarification" rows="3" required data-enter="send">{{ form.get("clarification", "") }}</textarea></label>
           <button type="submit">{{ ui.clarify_button }}</button>
         </form>
       {% else %}
@@ -50,7 +50,7 @@
         <details {% if form.get("clarification") %}open{% endif %}>
           <summary>{{ ui.another_clarification }}</summary>
           <form {{ hx(url_for('web.clarify', task_id=task.id)) }}>
-            <label>{{ ui.another_clarification_hint }}<textarea name="clarification" rows="3" required>{{ form.get("clarification", "") }}</textarea></label>
+            <label>{{ ui.another_clarification_hint }}<textarea name="clarification" rows="3" required data-enter="send">{{ form.get("clarification", "") }}</textarea></label>
             <button type="submit" class="secondary">{{ ui.clarify_button }}</button>
           </form>
         </details>

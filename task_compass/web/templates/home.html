@@ -6,7 +6,7 @@
   <form method="post" action="{{ url_for('web.create_task') }}">
     <label>
       {{ ui.new_task_hint }}
-      <textarea name="opening" rows="2" required autofocus></textarea>
+      <textarea name="opening" rows="2" required autofocus data-enter="send"></textarea>
     </label>
     <button type="submit">{{ ui.new_task_button }}</button>
   </form>

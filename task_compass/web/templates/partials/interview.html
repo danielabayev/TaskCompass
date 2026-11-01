@@ -16,7 +16,7 @@
       <form {{ hx(url_for('web.answer', task_id=task.id)) }}>
         <input type="hidden" name="round" value="{{ turn.round_no }}">
         <label>{{ ui.answer_label }}
-          <textarea name="answer" rows="3" required autofocus>{{ form.get("answer", "") }}</textarea>
+          <textarea name="answer" rows="3" required autofocus data-enter="send">{{ form.get("answer", "") }}</textarea>
         </label>
         <button type="submit">{{ ui.answer_button }}</button>
         <span class="htmx-indicator muted">{{ ui.waiting }}</span>

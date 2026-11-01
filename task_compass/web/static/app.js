@@ -20,3 +20,16 @@
   document.addEventListener("htmx:afterSwap", tick);
   document.addEventListener("DOMContentLoaded", tick);
 })();
+
+// In chat-like text boxes (marked data-enter="send"), Enter sends the form and
+// Shift+Enter adds a new line. Forms with several boxes (checkpoint, retro)
+// keep the normal Enter so a half-filled form is not sent by accident.
+document.addEventListener("keydown", function (e) {
+  var box = e.target;
+  if (e.key !== "Enter" || e.shiftKey || e.isComposing || box.tagName !== "TEXTAREA") return;
+  if (box.dataset.enter !== "send" || !box.form) return;
+  e.preventDefault();
+  var button = box.form.querySelector("button[type=submit]");
+  if (button && button.disabled) return;  // already sending (HTMX disables the button)
+  box.form.requestSubmit();  // runs "required" checks and lets HTMX handle the submit
+});
