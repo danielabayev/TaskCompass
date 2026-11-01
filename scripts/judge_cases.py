@@ -10,6 +10,7 @@ the test database.
 """
 
 import argparse
+import sys
 from dataclasses import dataclass
 
 from alembic import command
@@ -79,6 +80,7 @@ def main() -> int:
     parser.add_argument("--model", default=config.SMALL_MODEL)
     parser.add_argument("--runs", type=int, default=3)
     args = parser.parse_args()
+    sys.stdout.reconfigure(encoding="utf-8")  # Hebrew output on a Windows console
     config.SMALL_MODEL = args.model  # the judge reads it at call time
 
     url = config.database_url(test=True)

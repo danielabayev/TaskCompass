@@ -61,6 +61,7 @@ def main() -> int:
     parser.add_argument("ids", nargs="*", type=int)
     parser.add_argument("--runs", type=int, default=3)
     args = parser.parse_args()
+    sys.stdout.reconfigure(encoding="utf-8")  # Hebrew output on a Windows console
 
     url = config.database_url(test=True)
     cfg = Config("alembic.ini")
