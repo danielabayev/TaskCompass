@@ -22,7 +22,7 @@ BACKUP_DIR = Path("backups")
 def _command(tool: str, local: bool, *args: str) -> list[str]:
     user, db = os.environ.get("POSTGRES_USER", "task_compass"), os.environ.get("POSTGRES_DB", "task_compass")
     if local:
-        host, port = os.environ.get("POSTGRES_HOST", "localhost"), os.environ.get("POSTGRES_PORT", "5433")
+        host, port = os.environ.get("POSTGRES_HOST", "127.0.0.1"), os.environ.get("POSTGRES_PORT", "5433")
         return [tool, "-h", host, "-p", port, "-U", user, "-d", db, *args]
     return ["docker", "compose", "exec", "-T", "db", tool, "-U", user, "-d", db, *args]
 

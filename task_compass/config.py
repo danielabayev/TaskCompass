@@ -49,7 +49,7 @@ def database_url(test: bool = False) -> str:
     db = _env("POSTGRES_DB", "task_compass") + ("_test" if test else "")
     return (
         f"postgresql+psycopg://{_env('POSTGRES_USER', 'task_compass')}:"
-        f"{_env('POSTGRES_PASSWORD')}@{_env('POSTGRES_HOST', 'localhost')}:"
+        f"{_env('POSTGRES_PASSWORD')}@{_env('POSTGRES_HOST', '127.0.0.1')}:"
         f"{_env('POSTGRES_PORT', '5433')}/{db}"
     )
 
