@@ -32,6 +32,7 @@ ERROR_EMPTY_INPUT = "צריך לכתוב משהו."
 ERROR_WRONG_STAGE = "הפעולה הזאת לא מתאימה לשלב שבו המשימה נמצאת עכשיו."
 ERROR_UNKNOWN_TYPE = "סוג משימה לא מוכר."
 ERROR_NOT_FOUND = "המשימה לא נמצאה."
+ERROR_NOT_SENT = "השרת לא ענה, ולכן התשובה לא נשלחה ולא נשמרה. בדוק שהאפליקציה רצה בטרמינל ושלח שוב. הטקסט שכתבת נשאר בתיבה."
 
 # Card and interview screen.
 CARD_TITLE = "כרטיס המשימה"

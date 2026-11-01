@@ -33,3 +33,21 @@ document.addEventListener("keydown", function (e) {
   if (button && button.disabled) return;  // already sending (HTMX disables the button)
   box.form.requestSubmit();  // runs "required" checks and lets HTMX handle the submit
 });
+
+// When the server can't be reached (stopped, restarted) or crashes, HTMX
+// swaps nothing, so without this the page would look as if nothing happened.
+// Show the error above the form; the typed text stays in the box.
+function showNotSent(e) {
+  var form = e.detail.elt.closest("form");
+  if (!form) return;
+  var box = form.querySelector(".error.not-sent");
+  if (!box) {
+    box = document.createElement("p");
+    box.className = "error not-sent";
+    box.setAttribute("role", "alert");
+    box.textContent = document.body.dataset.notSent;
+    form.prepend(box);
+  }
+}
+document.addEventListener("htmx:sendError", showNotSent);
+document.addEventListener("htmx:responseError", showNotSent);
