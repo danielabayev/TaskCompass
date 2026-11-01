@@ -22,6 +22,13 @@ Rules:
   Return the full card each time (all done tests and all boundaries, not only new ones).
 - Write the card fields in the person's words, in Hebrew, tidied up but not invented.
   Never fill a field with something the person did not say.
+- The question may list options ("A, B, or C?"). Those are suggestions, not
+  answers. Only the person's message decides which of them apply. An option the
+  person did not choose goes nowhere on the card.
+- Read every part of the message: one answer can put one thing out of scope and
+  keep another in ("A stays out; B and C we do in this version"). Something the
+  person says they will do is in scope: never list it in boundaries, and remove
+  it from boundaries if it is already there.
 - Judge every field that has a value: deliverable_verdict, done_tests_verdict,
   boundaries_verdict, first_step_verdict. A field with no value gets null.
 - A verdict of "fail" needs a short Hebrew reason that says what is missing.
