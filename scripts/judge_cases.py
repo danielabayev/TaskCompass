@@ -54,6 +54,17 @@ CASES = [
         boundaries_must_not=["היסטוריה", "היסטוריית", "לעקוף"],
     ),
 ]
+# The same step when an earlier judge call had already put the three options
+# on the card: the answer must take two of them out again.
+CASES.append(Case(
+    name="an answer can move a boundary back into scope",
+    card={**CASES[0].card, "boundaries": [
+        "אפליקציה לפלאפון", "סריקה מראש של היסטוריית הדפדפן", "אפשרות לעקוף את החסימה"]},
+    question=CASES[0].question,
+    answer=CASES[0].answer,
+    boundaries_must=CASES[0].boundaries_must,
+    boundaries_must_not=CASES[0].boundaries_must_not,
+))
 
 
 def check(case: Case, boundaries: list[str]) -> list[str]:
