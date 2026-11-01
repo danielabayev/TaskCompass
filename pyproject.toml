@@ -14,7 +14,8 @@ dependencies = [
     "langgraph>=0.2",
 ]
 
-[project.optional-dependencies]
+# uv installs the "dev" group by default, so `uv run` keeps pytest.
+[dependency-groups]
 dev = ["pytest>=8"]
 
 [build-system]

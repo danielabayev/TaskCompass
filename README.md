@@ -15,23 +15,24 @@ matching Python if needed and keeps the exact package versions in `uv.lock`.
 
 ```powershell
 cd C:\projects\task_helper
-uv sync --extra dev         # creates .venv and installs the locked versions
+uv sync        # creates .venv and installs the locked versions
 
 copy .env.example .env      # then fill in ANTHROPIC_API_KEY and POSTGRES_PASSWORD
-docker compose up -d        # PostgreSQL on localhost:5433 (project name: task_compass)
+docker compose up -d        # PostgreSQL on 127.0.0.1:5433 (project name: task_compass)
 uv run alembic upgrade head # create the tables
 uv run pytest               # all tests should pass
 uv run flask --app task_compass.web run
 ```
 
-Open http://localhost:5000. `uv run` uses the project's `.venv`, so there is
+Open http://127.0.0.1:5000 (on Windows, "localhost" adds about 2 s to every
+request because it tries IPv6 first). `uv run` uses the project's `.venv`, so there is
 nothing to activate.
 
 The database also gets a separate `<POSTGRES_DB>_test` database for pytest,
 created automatically the first time the Docker volume is created.
 
-After pulling changes, run `uv sync --extra dev` again. To add a package:
-`uv add <name>` (or `uv add --optional dev <name>` for a test tool); this
+After pulling changes, run `uv sync` again. To add a package:
+`uv add <name>` (or `uv add --dev <name>` for a test tool); this
 updates `pyproject.toml` and `uv.lock` together.
 
 ## Everyday commands
