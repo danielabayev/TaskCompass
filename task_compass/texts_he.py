@@ -5,7 +5,7 @@ FIELD_LABELS = {
     "type": "סוג המשימה",
     "deliverable": "התוצר",
     "done_tests": "מבחני סיום",
-    "boundaries": "גבולות (מה לא בכלל)",
+    "boundaries": "לא כלול במשימה",
     "first_step": "צעד ראשון",
 }
 

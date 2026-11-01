@@ -23,7 +23,7 @@
           {{ task.category.name_he if task.category else "" }}
         {% endif %}
       {% elif name in ("done_tests", "boundaries") %}
-        <ul>{% for item in task[name] or [] %}<li><bdi>{{ item }}</bdi></li>{% endfor %}</ul>
+        <ul class="list-{{ name }}">{% for item in task[name] or [] %}<li><bdi>{{ item }}</bdi></li>{% endfor %}</ul>
       {% else %}
         <bdi>{{ task[name] or "" }}</bdi>
       {% endif %}

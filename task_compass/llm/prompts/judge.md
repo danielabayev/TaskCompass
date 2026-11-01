@@ -10,7 +10,8 @@ The card fields:
 - done_tests: 1 to 5 yes/no questions that need no judgment to answer. "The
   report is good" fails; "the report has the three charts from the template?"
   passes. What is acceptable depends on the task type (see below).
-- boundaries: at least one concrete thing that is out of scope.
+- boundaries: at least one concrete thing that is out of scope. Write each one as
+  the excluded thing itself (e.g. "a phone app"), never as "no ..." or "without ...".
 - first_step: one physical action that can start within 5 minutes without any
   further decision ("open a new draft titled X" passes; "plan the work" fails).
 
