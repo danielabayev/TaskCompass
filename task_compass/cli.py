@@ -1,6 +1,6 @@
 """Run an interview in the terminal, without the browser:
 
-    python -m task_compass.cli "לסדר את המחסן"
+    uv run python -m task_compass.cli "לסדר את המחסן"
 
 Uses the real model (needs ANTHROPIC_API_KEY in .env) and the real database.
 """

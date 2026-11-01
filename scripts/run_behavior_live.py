@@ -1,8 +1,8 @@
 """Layer 2 with the real model: every test task 3 times, each must pass 3/3.
 
-    python -m scripts.run_behavior_live            # all scenarios
-    python -m scripts.run_behavior_live 1 4        # only scenarios 1 and 4
-    python -m scripts.run_behavior_live --runs 1   # quick single run
+    uv run python -m scripts.run_behavior_live            # all scenarios
+    uv run python -m scripts.run_behavior_live 1 4        # only scenarios 1 and 4
+    uv run python -m scripts.run_behavior_live --runs 1   # quick single run
 
 Run it by hand after every prompt or model change. It costs real money (a few
 cents per scenario run) and writes to the test database, never the real one.

@@ -10,37 +10,41 @@ checkpoint (if time runs out) → retrospective.**
 
 ## Setup (Windows, PowerShell)
 
-Requirements: Python 3.11+, Docker Desktop.
+Requirements: [uv](https://docs.astral.sh/uv/), Docker Desktop. uv installs a
+matching Python if needed and keeps the exact package versions in `uv.lock`.
 
 ```powershell
 cd C:\projects\task_helper
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -e ".[dev]"
+uv sync --extra dev         # creates .venv and installs the locked versions
 
 copy .env.example .env      # then fill in ANTHROPIC_API_KEY and POSTGRES_PASSWORD
 docker compose up -d        # PostgreSQL on localhost:5433 (project name: task_compass)
-alembic upgrade head        # create the tables
-pytest                      # all tests should pass
-flask --app task_compass.web run
+uv run alembic upgrade head # create the tables
+uv run pytest               # all tests should pass
+uv run flask --app task_compass.web run
 ```
 
-Open http://localhost:5000.
+Open http://localhost:5000. `uv run` uses the project's `.venv`, so there is
+nothing to activate.
 
 The database also gets a separate `<POSTGRES_DB>_test` database for pytest,
 created automatically the first time the Docker volume is created.
+
+After pulling changes, run `uv sync --extra dev` again. To add a package:
+`uv add <name>` (or `uv add --optional dev <name>` for a test tool); this
+updates `pyproject.toml` and `uv.lock` together.
 
 ## Everyday commands
 
 | What | Command |
 |---|---|
 | Start the database | `docker compose up -d` |
-| Run the app | `flask --app task_compass.web run` |
-| Interview in the terminal | `python -m task_compass.cli "לסדר את המחסן"` |
-| Back up the database | `python -m scripts.backup` (writes `backups/*.sql`) |
-| Restore a backup (stop the app first) | `python -m scripts.backup --restore backups\<file>.sql` |
-| Fast tests (scripted model, free) | `pytest` |
-| Real-model behavior run (costs money) | `python -m scripts.run_behavior_live` |
+| Run the app | `uv run flask --app task_compass.web run` |
+| Interview in the terminal | `uv run python -m task_compass.cli "לסדר את המחסן"` |
+| Back up the database | `uv run python -m scripts.backup` (writes `backups/*.sql`) |
+| Restore a backup (stop the app first) | `uv run python -m scripts.backup --restore backups\<file>.sql` |
+| Fast tests (scripted model, free) | `uv run pytest` |
+| Real-model behavior run (costs money) | `uv run python -m scripts.run_behavior_live` |
 
 ## How the code is organized
 
@@ -71,7 +75,7 @@ Where to start when adding a feature:
 - A new step in a stage → a method in the stage's service, a route in
   `web/routes.py`, a form in `web/templates/partials/<stage>.html`, strings in
   `texts_he.py`.
-- A prompt change → `llm/prompts/*.md`, then run `python -m scripts.run_behavior_live`.
+- A prompt change → `llm/prompts/*.md`, then run `uv run python -m scripts.run_behavior_live`.
 
 ## Key behaviors
 

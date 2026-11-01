@@ -1,7 +1,7 @@
 """Export the whole database to one SQL file, or restore from one.
 
-    python -m scripts.backup                       # -> backups/task_compass-YYYYMMDD-HHMMSS.sql
-    python -m scripts.backup --restore FILE        # replaces the current data with FILE
+    uv run python -m scripts.backup                       # -> backups/task_compass-YYYYMMDD-HHMMSS.sql
+    uv run python -m scripts.backup --restore FILE        # replaces the current data with FILE
 
 By default pg_dump / psql run inside the Docker container, so nothing has to
 be installed on Windows. With --local they run from PATH instead.

@@ -1,6 +1,6 @@
 """Flask app factory.
 
-    flask --app task_compass.web run          # http://localhost:5000
+    uv run flask --app task_compass.web run   # http://localhost:5000
 """
 
 from flask import Flask
