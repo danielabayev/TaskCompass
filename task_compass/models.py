@@ -66,6 +66,7 @@ class TaskStatus:
     ESTIMATE = "estimate"  # card is ready, collecting the estimates
     PLANNED = "planned"  # binding estimate set, not started
     RUNNING = "running"  # timer running
+    PAUSED = "paused"  # timer stopped by the person; resuming moves started_at forward
     CHECKPOINT = "checkpoint"  # time ran out, waiting for the checkpoint
     RETRO = "retro"  # finished or stopped, waiting for the retrospective
     CLOSED = "closed"  # done; see Task.outcome
@@ -118,6 +119,7 @@ class Task(UserOwned, Base):
 
     # Execution.
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    paused_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     extension_min: Mapped[int] = mapped_column(Integer, default=0)
     scope_reduced: Mapped[bool] = mapped_column(Boolean, default=False)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

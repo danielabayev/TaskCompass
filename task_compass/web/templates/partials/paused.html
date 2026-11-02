@@ -1,0 +1,17 @@
+{% from "partials/macros.html" import hx, error_box %}
+<div class="split">
+  <div>
+    <h2>{{ ui.paused_title }}</h2>
+    {{ error_box(error) }}
+    <p class="muted">{{ ui.time_left }}</p>
+    <div class="timer"><bdi>{{ "%02d:%02d" | format(left_seconds // 60, left_seconds % 60) }}</bdi></div>
+    <p class="muted">{{ ui.paused_note }}</p>
+    <form {{ hx(url_for('web.resume', task_id=task.id)) }}>
+      <button type="submit">{{ ui.resume_button }}</button>
+    </form>
+    <form {{ hx(url_for('web.finish', task_id=task.id)) }}>
+      <button type="submit" class="secondary">{{ ui.finish_button }}</button>
+    </form>
+  </div>
+  {% include "partials/card.html" %}
+</div>

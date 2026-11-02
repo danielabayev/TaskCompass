@@ -35,6 +35,26 @@ class ExecutionService:
             task.started_at = now_utc()
             task.status = TaskStatus.RUNNING
 
+    def pause(self, task_id: int) -> None:
+        """Stop the clock. Focus mode is off while paused."""
+        with session_scope(self.session_factory) as session:
+            task = get_task(session, task_id, TaskStatus.RUNNING)
+            task.paused_at = now_utc()
+            task.status = TaskStatus.PAUSED
+
+    def resume(self, task_id: int) -> None:
+        """Continue: the paused time is added to the start time, so every
+        deadline and the measured time ignore it."""
+        with session_scope(self.session_factory) as session:
+            task = get_task(session, task_id, TaskStatus.PAUSED)
+            self._unpause(task)
+
+    @staticmethod
+    def _unpause(task: Task) -> None:
+        task.started_at = task.started_at + (now_utc() - task.paused_at)
+        task.paused_at = None
+        task.status = TaskStatus.RUNNING
+
     def refresh(self, task_id: int, now: datetime | None = None) -> None:
         """Move a running task to the checkpoint once its time is up."""
         with session_scope(self.session_factory) as session:
@@ -47,7 +67,9 @@ class ExecutionService:
     def finish(self, task_id: int) -> None:
         """The person finished the task (on time or late)."""
         with session_scope(self.session_factory) as session:
-            task = get_task(session, task_id, TaskStatus.RUNNING, TaskStatus.CHECKPOINT)
+            task = get_task(session, task_id, TaskStatus.RUNNING, TaskStatus.PAUSED, TaskStatus.CHECKPOINT)
+            if task.status == TaskStatus.PAUSED:
+                self._unpause(task)  # the paused time does not count as work
             self._end(task, TaskOutcome.COMPLETED)
         self.retro.close_if_short(task_id)
 

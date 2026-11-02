@@ -181,6 +181,16 @@ def start(task_id: int):
     return _action(task_id, lambda: services().execution.start(task_id))
 
 
+@bp.post("/tasks/<int:task_id>/pause")
+def pause(task_id: int):
+    return _action(task_id, lambda: services().execution.pause(task_id))
+
+
+@bp.post("/tasks/<int:task_id>/resume")
+def resume(task_id: int):
+    return _action(task_id, lambda: services().execution.resume(task_id))
+
+
 @bp.post("/tasks/<int:task_id>/finish")
 def finish(task_id: int):
     return _action(task_id, lambda: services().execution.finish(task_id))
@@ -333,6 +343,8 @@ def _render(task_id: int, *, full_page: bool = False, error: str | None = None, 
         }
         if task.status == TaskStatus.ESTIMATE:
             ctx["estimate_step"] = estimate_step(task)
+        if task.status == TaskStatus.PAUSED:
+            ctx["left_seconds"] = max(0, int((deadline_of(task) - task.paused_at).total_seconds()))
         if task.status in (TaskStatus.RUNNING, TaskStatus.CHECKPOINT):
             ctx["deadline"] = deadline_of(task)
             ctx["allowed_choices"] = execution.allowed_choices([c.choice for c in task.checkpoints])
