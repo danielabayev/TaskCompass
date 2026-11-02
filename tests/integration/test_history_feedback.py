@@ -8,7 +8,7 @@ from task_compass.config import Settings
 from task_compass.llm.fake import FakeClient
 from task_compass.models import Category, Retro, Task
 from task_compass.wiring import build_services
-from tests.helpers import GOOD_CARD, judged, proposal, question
+from tests.helpers import GOOD_CARD, breakdown, judged, proposal, question
 
 
 def finished(session, type_key, blind, actual, outcome="completed", days_ago=1, lesson=None):
@@ -26,7 +26,11 @@ def finished(session, type_key, blind, actual, outcome="completed", days_ago=1, 
 
 def ready_task(services, fake, type_key="write"):
     fake.queue("judge", judged(**dict(GOOD_CARD, type_key=type_key)))
-    return services.interview.start("משימה")
+    task_id = services.interview.start("משימה")
+    fake.queue("breakdown", breakdown(1))
+    services.estimate.propose_breakdown(task_id)
+    services.estimate.edit_breakdown(task_id, ["חלק 1"], "confirm")
+    return task_id
 
 
 def services_with(session_factory):

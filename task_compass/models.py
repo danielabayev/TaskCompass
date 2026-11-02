@@ -86,6 +86,11 @@ class Task(UserOwned, Base):
     # Per-field result: {"deliverable": {"status": "pass"|"fail"|"unchecked", "reason": "..."}}
     verdicts: Mapped[dict] = mapped_column(JSONB, default=dict)
 
+    # The breakdown comes before any time: the model proposes the subtask titles,
+    # the person edits them, then confirms. None = not proposed yet.
+    breakdown: Mapped[list | None] = mapped_column(JSONB)
+    breakdown_confirmed: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
+
     # The four estimate values, in minutes. The blind estimate is never overwritten.
     blind_estimate_min: Mapped[int | None] = mapped_column(Integer)
     model_estimate_min: Mapped[int | None] = mapped_column(Integer)

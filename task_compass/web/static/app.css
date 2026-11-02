@@ -79,3 +79,8 @@ label:has(> input:checked) + .choice-details { display: block; }
 /* Debug call log: prompts mix Hebrew and English, keep line breaks. */
 pre.log { white-space: pre-wrap; unicode-bidi: plaintext; text-align: start; max-block-size: 30rem; overflow: auto; }
 .error-text { color: var(--fail); }
+
+/* Breakdown editor: one row per subtask, name field and remove button side by side. */
+.subtask-row { display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem; }
+.subtask-row input { margin-bottom: 0; flex: 1; }
+.subtask-row button { width: auto; margin-bottom: 0; white-space: nowrap; }

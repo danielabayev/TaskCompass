@@ -7,7 +7,7 @@ from task_compass import config
 from task_compass.llm.gateway import CallFailed, Completion, InvalidAnswer, MissingKey
 
 # Thinking depth per call. The judge is a short classification-like task.
-EFFORT = {"judge": "low", "ask": "medium", "propose": "medium"}
+EFFORT = {"judge": "low", "ask": "medium", "breakdown": "medium", "propose": "medium"}
 
 
 class AnthropicClient:

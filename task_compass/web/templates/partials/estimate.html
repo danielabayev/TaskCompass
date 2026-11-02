@@ -3,7 +3,30 @@
   <div>
     <h2>{{ ui.estimate_title }}</h2>
     {{ error_box(error) }}
-    {% if estimate_step == "blind" %}
+    {% if estimate_step == "breakdown_start" %}
+      <p>{{ ui.breakdown_start_text }}</p>
+      <form {{ hx(url_for('web.breakdown_propose', task_id=task.id)) }}>
+        <button type="submit">{{ ui.breakdown_start_button }}</button>
+      </form>
+    {% elif estimate_step == "breakdown" %}
+      <h3>{{ ui.breakdown_title }}</h3>
+      <p class="muted">{{ ui.breakdown_hint }}</p>
+      {% set titles = form.getlist("title") if form and form.getlist is defined and form.getlist("title") else task.breakdown %}
+      <form {{ hx(url_for('web.breakdown', task_id=task.id)) }}>
+        {# First submit button = what Enter does inside a field: just save. #}
+        <button type="submit" name="action" value="save" hidden></button>
+        {% for title in titles %}
+          <div class="subtask-row" role="group">
+            <input type="text" name="title" value="{{ title }}" aria-label="{{ ui.subtask_label }} {{ loop.index }}" placeholder="{{ ui.subtask_label }}" maxlength="200">
+            <button type="submit" name="action" value="remove:{{ loop.index0 }}" class="secondary outline">{{ ui.subtask_remove }}</button>
+          </div>
+        {% endfor %}
+        <button type="submit" name="action" value="add" class="secondary">{{ ui.subtask_add }}</button>
+        <button type="submit" name="action" value="confirm">{{ ui.breakdown_confirm }}</button>
+      </form>
+    {% elif estimate_step == "blind" %}
+      <p>{{ ui.blind_intro }}</p>
+      <ol>{% for title in task.breakdown %}<li><bdi>{{ title }}</bdi></li>{% endfor %}</ol>
       <form {{ hx(url_for('web.blind', task_id=task.id)) }}>
         <label>{{ ui.blind_label }}
           <input type="number" name="minutes" min="1" step="1" required autofocus value="{{ form.get('minutes', '') }}">
@@ -21,7 +44,7 @@
       </div>
       <details {% if estimate_step == "clarify" %}open{% endif %}>
         <summary>{{ ui.breakdown }}</summary>
-        <ul>{% for s in task.model_breakdown or [] %}<li><bdi>{{ s.title }}</bdi> · {{ s.minutes }} {{ ui.min_short }}</li>{% endfor %}</ul>
+        <ul>{% for s in task.breakdown or task.model_breakdown or [] %}<li><bdi>{{ s.title if s is mapping else s }}</bdi>{% if s is mapping %} · {{ s.minutes }} {{ ui.min_short }}{% endif %}</li>{% endfor %}</ul>
       </details>
       {% if estimate_step == "clarify" %}
         <h3>{{ ui.gap_title }}</h3>

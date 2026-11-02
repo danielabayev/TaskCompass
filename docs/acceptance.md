@@ -6,7 +6,7 @@ Goal: check that the tool helps in real life, not only that the code is right.
 
 1. Pick 3 real tasks of your own, of different types (for example build, learn, errands).
    Do not enter work tasks with confidential information.
-2. Take each one through the whole path: definition, blind estimate, binding
+2. Take each one through the whole path: definition, breakdown into subtasks (edit it), blind estimate for the whole task, binding
    estimate, execution, a checkpoint if needed, and the retrospective.
 3. After each task, copy the checklist below and fill it in.
 
@@ -17,6 +17,7 @@ Task: ______  Type: ______  Date: ______
 - [ ] I reached a defined card without feeling the tool was nagging or asking the same thing again.
 - [ ] The defined card differs from what I had in mind at the start (the tool exposed something).
 - [ ] The first step that was written could be carried out immediately.
+- [ ] I could edit, add and remove subtasks before setting any time.
 - [ ] The blind estimate was saved before I saw the model's proposal.
 - [ ] I did not need to bypass the tool or work outside it.
 - [ ] The actual time and the retrospective were saved and look right in the history.

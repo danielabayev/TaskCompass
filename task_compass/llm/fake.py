@@ -1,6 +1,6 @@
 """A scripted model for tests: no network, no cost, fully predictable.
 
-Queue answers per purpose ("judge", "ask", "propose"). Each queued item is a
+Queue answers per purpose ("judge", "ask", "breakdown", "propose"). Each queued item is a
 pydantic object, a callable that receives the prompt and returns one, or an
 exception instance to raise.
 """

@@ -1,6 +1,6 @@
 """The single entry point to the language model.
 
-The rest of the app calls Gateway.judge / ask / propose and gets validated
+The rest of the app calls Gateway.judge / ask / breakdown / propose and gets validated
 pydantic objects back, or an LLMError with a Hebrew message. The gateway:
 - refuses to call the model once the month's spend reached the local cap,
 - logs every call (model, tokens, cost, success) in llm_calls,
@@ -21,7 +21,7 @@ from sqlalchemy.orm import sessionmaker
 
 from task_compass import config, texts_he
 from task_compass.db import session_scope
-from task_compass.llm.schemas import JudgeResult, Proposal, Question
+from task_compass.llm.schemas import Breakdown, JudgeResult, Proposal, Question
 from task_compass.models import LlmCall
 
 T = TypeVar("T", bound=BaseModel)
@@ -95,7 +95,7 @@ class Gateway:
         self.session_factory = session_factory
         self.settings = settings or config.Settings()
 
-    # --- the three calls the app makes -------------------------------------
+    # --- the calls the app makes -------------------------------------
 
     def judge(self, *, task_id: int | None, card: dict, active_types: dict[str, str],
               question: str | None, answer: str) -> JudgeResult:
@@ -130,16 +130,27 @@ class Gateway:
 
         return self._call("ask", config.STRONG_MODEL, load_prompt("ask"), user, Question, task_id, one_question)
 
-    def propose(self, *, task_id: int | None, card: dict, clarifications: list[str]) -> Proposal:
+    def breakdown(self, *, task_id: int | None, card: dict) -> Breakdown:
+        user = _sections(("Task card", _json(card)))
+
+        def sane(b: Breakdown) -> None:
+            if not any(t.strip() for t in b.subtasks):
+                raise InvalidAnswer("Give at least one subtask with a title.")
+
+        return self._call("breakdown", config.STRONG_MODEL, load_prompt("breakdown"), user, Breakdown, task_id, sane)
+
+    def propose(self, *, task_id: int | None, card: dict, subtasks: list[str],
+                clarifications: list[str]) -> Proposal:
         user = _sections(
             ("Task card", _json(card)),
+            ("Subtasks (the person's confirmed breakdown; estimate the whole task, not each part)", _json(subtasks)),
             ("Clarifications from the person (oldest first)",
              "\n".join(f"- {c}" for c in clarifications) if clarifications else "(none)"),
         )
 
         def sane(p: Proposal) -> None:
-            if not p.subtasks or any(s.minutes <= 0 for s in p.subtasks):
-                raise InvalidAnswer("Give at least one subtask, each with a positive number of minutes.")
+            if p.minutes <= 0:
+                raise InvalidAnswer("Give a positive number of minutes for the whole task.")
 
         return self._call("propose", config.STRONG_MODEL, load_prompt("propose"), user, Proposal, task_id, sane)
 

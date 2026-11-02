@@ -29,11 +29,10 @@ class Question(BaseModel):
     sample_answer: str = Field(description="A short example answer, in Hebrew, for when the user is stuck.")
 
 
-class Subtask(BaseModel):
-    title: str
-    minutes: int
+class Breakdown(BaseModel):
+    subtasks: list[str] = Field(description="Short Hebrew subtask titles, in the order of work.")
 
 
 class Proposal(BaseModel):
-    subtasks: list[Subtask]
+    minutes: int = Field(description="Realistic minutes for the whole task, all subtasks together.")
     rationale: str = Field(description="One or two Hebrew sentences on what drives the estimate.")

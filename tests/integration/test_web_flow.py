@@ -9,7 +9,7 @@ from task_compass.config import Settings
 from task_compass.models import Task
 from task_compass.web import create_app
 from task_compass.wiring import build_services
-from tests.helpers import GOOD_CARD, judged, proposal, question
+from tests.helpers import GOOD_CARD, breakdown, judged, proposal, question
 from task_compass.llm.fake import FakeClient
 from task_compass.llm.gateway import CallFailed
 
@@ -41,6 +41,13 @@ def shift_start(factory, minutes, task_id=1):
     s.close()
 
 
+def confirm_breakdown(fake, client, n=1):
+    """Propose and confirm a breakdown of n subtasks for task 1."""
+    fake.queue("breakdown", breakdown(n))
+    client.post("/tasks/1/breakdown/propose", headers=HX)
+    client.post("/tasks/1/breakdown", data={"title": breakdown(n).subtasks, "action": "confirm"}, headers=HX)
+
+
 def to_planned(fake, client, factory, blind=30, model=(20, 15), binding=40):
     fake.queue("judge", judged(type_key="write", deliverable=GOOD_CARD["deliverable"]))
     fake.queue("ask", question("מה המבחן?"))
@@ -48,6 +55,7 @@ def to_planned(fake, client, factory, blind=30, model=(20, 15), binding=40):
     assert r.status_code == 302
     fake.queue("judge", judged(**GOOD_CARD))
     client.post("/tasks/1/answer", data={"answer": "הכול"}, headers=HX)
+    confirm_breakdown(fake, client, len(model))
     fake.queue("propose", proposal(*model))
     client.post("/tasks/1/blind", data={"minutes": str(blind)}, headers=HX)
     client.post("/tasks/1/binding", data={"minutes": str(binding)}, headers=HX)
@@ -93,6 +101,7 @@ def test_blind_estimate_is_locked_before_the_proposal_is_shown(env):
     client.post("/tasks", data={"opening": "מייל"})
     r = client.get("/tasks/1")
     assert "הצעת המודל" not in r.text  # nothing about the model's number yet
+    confirm_breakdown(fake, client, 1)
     fake.queue("propose", CallFailed("overloaded"))
     r = client.post("/tasks/1/blind", data={"minutes": "30"}, headers=HX)
     assert "לנסות שוב" in r.text
@@ -106,6 +115,7 @@ def test_gap_triggers_clarification_then_binding(env):
     fake, client, factory = env
     fake.queue("judge", judged(**GOOD_CARD))
     client.post("/tasks", data={"opening": "מייל"})
+    confirm_breakdown(fake, client, 2)
     fake.queue("propose", proposal(40, 30))  # 70 vs 30
     r = client.post("/tasks/1/blind", data={"minutes": "30"}, headers=HX)
     assert "פער של פי 2" in r.text
@@ -123,6 +133,7 @@ def test_person_can_ask_for_more_clarification_rounds(env):
     fake, client, factory = env
     fake.queue("judge", judged(**GOOD_CARD))
     client.post("/tasks", data={"opening": "מייל"})
+    confirm_breakdown(fake, client, 2)
     fake.queue("propose", proposal(40, 30))  # 70 vs 30: the first round is required
     client.post("/tasks/1/blind", data={"minutes": "30"}, headers=HX)
     fake.queue("propose", proposal(30, 30))
@@ -141,6 +152,7 @@ def test_extra_round_is_offered_without_a_gap_and_makes_the_retro_deep(env):
     fake, client, factory = env
     fake.queue("judge", judged(**GOOD_CARD))
     client.post("/tasks", data={"opening": "מייל"})
+    confirm_breakdown(fake, client, 2)
     fake.queue("propose", proposal(25, 25), proposal(20, 20))
     client.post("/tasks/1/blind", data={"minutes": "30"}, headers=HX)  # 50 vs 30: no gap
     client.post("/tasks/1/clarify", data={"clarification": "יש כבר תבנית"}, headers=HX)
@@ -165,6 +177,7 @@ def test_no_gap_goes_straight_to_binding(env):
     fake, client, factory = env
     fake.queue("judge", judged(**GOOD_CARD))
     client.post("/tasks", data={"opening": "מייל"})
+    confirm_breakdown(fake, client, 2)
     fake.queue("propose", proposal(25, 25))  # 50 vs 30
     r = client.post("/tasks/1/blind", data={"minutes": "30"}, headers=HX)
     assert "פער של פי 2" not in r.text and "ההערכה המחייבת" in r.text
@@ -256,8 +269,8 @@ def test_history_and_spend_show_the_data(env):
     r = client.get("/history")
     assert "מייל למנהל" in r.text
     r = client.get("/spend")
-    # judge (haiku) x2, ask (opus) x1, propose (opus) x1 at 1000 in / 200 out each.
-    expected = 2 * (1000 * 0.1 + 200 * 0.5) / 1e6 + 2 * (1000 * 4 + 200 * 20) / 1e6
+    # judge (haiku) x2, ask (opus) x1, breakdown + propose (opus) x2 at 1000 in / 200 out each.
+    expected = 2 * (1000 * 0.1 + 200 * 0.5) / 1e6 + 3 * (1000 * 4 + 200 * 20) / 1e6
     assert f"${expected:.2f}" in r.text
 
 
@@ -302,3 +315,70 @@ def test_calls_page_lists_the_task_calls(env):
     assert "judge" in page and "ask" in page
     assert "DEBUG_LOG_CALLS" in page  # debug is off in this test: says how to turn it on
     assert client.get("/tasks/99/calls").status_code == 404
+
+
+def card_ready(fake, client):
+    fake.queue("judge", judged(**GOOD_CARD))
+    client.post("/tasks", data={"opening": "מייל"})
+
+
+def test_breakdown_comes_before_any_time_and_can_be_edited(env):
+    fake, client, factory = env
+    card_ready(fake, client)
+    r = client.get("/tasks/1")
+    assert "להציע פירוק" in r.text and 'name="minutes"' not in r.text  # no time field yet
+    r = client.post("/tasks/1/blind", data={"minutes": "30"}, headers=HX)
+    assert "לא מתאימה" in r.text and task_row(factory).blind_estimate_min is None
+
+    fake.queue("breakdown", breakdown(3))
+    r = client.post("/tasks/1/breakdown/propose", headers=HX)
+    assert task_row(factory).breakdown == ["חלק 1", "חלק 2", "חלק 3"] and "לאשר את הפירוק" in r.text
+
+    # rename one, remove another: the typed titles are saved with the action
+    client.post("/tasks/1/breakdown", data={"title": ["טיוטה", "חלק 2", "חלק 3"], "action": "remove:1"}, headers=HX)
+    assert task_row(factory).breakdown == ["טיוטה", "חלק 3"]
+    client.post("/tasks/1/breakdown", data={"title": ["טיוטה", "חלק 3"], "action": "add"}, headers=HX)
+    assert task_row(factory).breakdown == ["טיוטה", "חלק 3", ""] and not task_row(factory).breakdown_confirmed
+    # confirming drops empty rows
+    r = client.post("/tasks/1/breakdown", data={"title": ["טיוטה", "חלק 3", " "], "action": "confirm"}, headers=HX)
+    t = task_row(factory)
+    assert t.breakdown == ["טיוטה", "חלק 3"] and t.breakdown_confirmed
+    assert r.text.count('name="minutes"') == 1
+    # the list is locked once confirmed
+    r = client.post("/tasks/1/breakdown", data={"title": ["x"], "action": "save"}, headers=HX)
+    assert "לא מתאימה" in r.text and task_row(factory).breakdown == ["טיוטה", "חלק 3"]
+
+
+def test_confirming_an_empty_breakdown_is_rejected(env):
+    fake, client, factory = env
+    card_ready(fake, client)
+    fake.queue("breakdown", breakdown(1))
+    client.post("/tasks/1/breakdown/propose", headers=HX)
+    r = client.post("/tasks/1/breakdown", data={"title": ["", " "], "action": "confirm"}, headers=HX)
+    assert "לפחות תת־משימה אחת" in r.text and not task_row(factory).breakdown_confirmed
+
+
+def test_one_estimate_for_the_whole_task_with_the_subtasks_as_context(env):
+    fake, client, factory = env
+    card_ready(fake, client)
+    fake.queue("breakdown", breakdown(1))
+    client.post("/tasks/1/breakdown/propose", headers=HX)
+    r = client.post("/tasks/1/breakdown", data={"title": ["א", "ב", "ג"], "action": "confirm"}, headers=HX)
+    assert r.text.count('name="minutes"') == 1  # one number for the whole task
+    fake.queue("propose", proposal(30))
+    r = client.post("/tasks/1/blind", data={"minutes": "35"}, headers=HX)
+    t = task_row(factory)
+    assert t.blind_estimate_min == 35 and t.model_estimate_min == 30
+    assert '"א"' in fake.calls[-1]["user"] and '"ג"' in fake.calls[-1]["user"]  # the model sees the subtasks
+    assert "א" in r.text and "ג" in r.text
+
+
+def test_breakdown_failure_can_be_retried(env):
+    fake, client, factory = env
+    card_ready(fake, client)
+    fake.queue("breakdown", CallFailed("overloaded"))
+    r = client.post("/tasks/1/breakdown/propose", headers=HX)
+    assert "לנסות שוב" in r.text and task_row(factory).breakdown is None
+    fake.queue("breakdown", breakdown(2))
+    client.post("/tasks/1/retry", headers=HX)
+    assert task_row(factory).breakdown == ["חלק 1", "חלק 2"]

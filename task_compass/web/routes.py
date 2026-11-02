@@ -150,6 +150,17 @@ def resolve_stuck(task_id: int):
     return _redirect(url_for("web.task_page", task_id=child_id))
 
 
+@bp.post("/tasks/<int:task_id>/breakdown/propose")
+def breakdown_propose(task_id: int):
+    return _action(task_id, lambda: services().estimate.propose_breakdown(task_id))
+
+
+@bp.post("/tasks/<int:task_id>/breakdown")
+def breakdown(task_id: int):
+    return _action(task_id, lambda: services().estimate.edit_breakdown(
+        task_id, request.form.getlist("title"), request.form.get("action", "save")))
+
+
 @bp.post("/tasks/<int:task_id>/blind")
 def blind(task_id: int):
     return _action(task_id, lambda: services().estimate.submit_blind(task_id, request.form.get("minutes")))

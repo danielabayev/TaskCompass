@@ -45,6 +45,7 @@ CLI_OPENING_PROMPT = "מה המשימה? "
 CLI_RETRY_PROMPT = "לחץ Enter כדי לנסות שוב..."
 ERROR_NO_KEY = "לא הוגדר מפתח API. צריך להוסיף ANTHROPIC_API_KEY לקובץ ‎.env ולהפעיל מחדש."
 ERROR_MINUTES = "צריך מספר שלם של דקות, בין 1 ל-43200 (30 יום)."
+ERROR_BREAKDOWN_EMPTY = "צריך לפחות תת־משימה אחת עם שם."
 ERROR_BLIND_LOCKED = "ההערכה העיוורת כבר נשמרה ולא משתנה."
 ERROR_SECOND_EXTENSION = "כבר השתמשת בהארכה. אפשר לפצל, לצמצם או לעצור."
 ERROR_REDUCE_NEEDS_TESTS = "בצמצום צריך להשאיר לפחות מבחן סיום אחד."
@@ -79,7 +80,16 @@ UI = {
     "investigate_option": "לפתוח משימת תחקור",
     "investigate_child_label": "מה צריך לברר (אפשר להשאיר ריק)",
     "estimate_title": "הערכת זמן",
-    "blind_label": "ההערכה שלך, בדקות, לפני שאתה רואה את ההצעה של המודל",
+    "breakdown_start_text": "קודם מפרקים את המשימה לתת־משימות, ורק אחר כך קובעים זמן לכל אחת.",
+    "breakdown_start_button": "להציע פירוק",
+    "breakdown_title": "פירוק לתת־משימות",
+    "breakdown_hint": "המודל הציע פירוק. אפשר לשנות שמות, להוסיף ולהסיר תת־משימות. אחרי האישור מעריכים את הזמן למשימה כולה.",
+    "subtask_label": "תת־משימה",
+    "subtask_add": "להוסיף תת־משימה",
+    "subtask_remove": "להסיר",
+    "breakdown_confirm": "לאשר את הפירוק",
+    "blind_label": "ההערכה שלך למשימה כולה, בדקות, לפני שאתה רואה את ההצעה של המודל",
+    "blind_intro": "עכשיו הערך כמה זמן תיקח המשימה כולה, עם כל תת־המשימות יחד.",
     "blind_button": "לנעול את ההערכה",
     "blind_hint": "ההערכה הזאת ננעלת ולא משתנה. היא הבסיס שאליו משווים את הזמן בפועל.",
     "pending_estimate": "ההערכה שלך שמורה. הצעת המודל עוד לא התקבלה.",
@@ -190,5 +200,5 @@ OUTCOME_LABELS = {
     "investigate": "הועברה לתחקור",
 }
 
-PURPOSE_LABELS = {"judge": "בדיקת הכרטיס", "ask": "שאלות הראיון", "propose": "הצעת זמן"}
+PURPOSE_LABELS = {"judge": "בדיקת הכרטיס", "ask": "שאלות הראיון", "breakdown": "פירוק לתת־משימות", "propose": "הצעת זמן"}
 ERROR_STALE_ANSWER = "השאלה הזאת כבר נענתה (אולי נשלח פעמיים). הנה השאלה הנוכחית."

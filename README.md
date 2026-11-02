@@ -5,7 +5,7 @@ estimate it honestly, times the work, and learns from the gap between your
 estimate and reality. Hebrew, right-to-left interface; runs only on
 `localhost`.
 
-The flow: **definition (Grill Me interview) → time estimate → execution →
+The flow: **definition (Grill Me interview) → breakdown into editable subtasks → one time estimate for the whole task → execution →
 checkpoint (if time runs out) → retrospective.**
 
 ## Setup (Windows, PowerShell)

@@ -2,7 +2,7 @@
 
 from task_compass.llm.gateway import Gateway
 from task_compass.llm.fake import FakeClient
-from task_compass.llm.schemas import FieldVerdict, JudgeResult, Proposal, Question, Subtask
+from task_compass.llm.schemas import Breakdown, FieldVerdict, JudgeResult, Proposal, Question
 
 OK = FieldVerdict(status="pass", reason="")
 
@@ -36,9 +36,13 @@ def question(text="מה בדיוק התוצר?", sample="למשל: קובץ PDF"
     return Question(question=text, sample_answer=sample)
 
 
+def breakdown(n: int = 1) -> Breakdown:
+    return Breakdown(subtasks=[f"חלק {i + 1}" for i in range(n)])
+
+
 def proposal(*minutes: int) -> Proposal:
-    return Proposal(subtasks=[Subtask(title=f"חלק {i + 1}", minutes=m) for i, m in enumerate(minutes)],
-                    rationale="הערכה")
+    """A model estimate for the whole task: the parts given are just summed."""
+    return Proposal(minutes=sum(minutes), rationale="הערכה")
 
 
 def make_gateway(session_factory, cap: float = 10.0, debug: bool = False):
