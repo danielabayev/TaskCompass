@@ -31,7 +31,7 @@ def ready_task(services, fake, type_key="write"):
 
 def services_with(session_factory):
     fake = FakeClient()
-    return fake, build_services(fake, session_factory, Settings(anthropic_api_key="", monthly_cost_cap_usd=10))
+    return fake, build_services(fake, session_factory, Settings(anthropic_api_key="", monthly_cost_cap_usd=10, debug_log_calls=False))
 
 
 def test_type_factor_global_fallback_and_none(session_factory, session):

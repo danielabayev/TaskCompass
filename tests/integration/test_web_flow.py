@@ -17,7 +17,7 @@ from task_compass.llm.gateway import CallFailed
 @pytest.fixture
 def env(session_factory):
     fake = FakeClient()
-    services = build_services(fake, session_factory, Settings(anthropic_api_key="", monthly_cost_cap_usd=10))
+    services = build_services(fake, session_factory, Settings(anthropic_api_key="", monthly_cost_cap_usd=10, debug_log_calls=False))
     app = create_app(services)
     return fake, app.test_client(), session_factory
 
