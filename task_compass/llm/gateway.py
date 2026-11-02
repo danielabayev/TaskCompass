@@ -158,7 +158,8 @@ class Gateway:
                 if validate:
                     validate(result.parsed)
             except InvalidAnswer as exc:
-                self._log(purpose, model, task_id, exc, success=False, error=f"invalid: {exc}"[:200])
+                self._log(purpose, model, task_id, exc, success=False, error=f"invalid: {exc}"[:200],
+                          prompt=(system, prompt), response=str(exc))
                 if attempt == 2:
                     raise LLMError(texts_he.ERROR_INVALID_ANSWER) from exc
                 prompt = f"{user}\n\n# Your previous answer was rejected\n{exc}\nAnswer again, following the rules exactly."
@@ -166,14 +167,19 @@ class Gateway:
             except MissingKey as exc:
                 raise LLMError(texts_he.ERROR_NO_KEY) from exc
             except CallFailed as exc:
-                self._log(purpose, model, task_id, exc, success=False, error=str(exc)[:200])
+                self._log(purpose, model, task_id, exc, success=False, error=str(exc)[:200],
+                          prompt=(system, prompt), response=str(exc))
                 raise LLMError(texts_he.ERROR_CALL_FAILED) from exc
-            self._log(purpose, model, task_id, result, success=True)
+            self._log(purpose, model, task_id, result, success=True, prompt=(system, prompt),
+                      response=result.parsed.model_dump_json(indent=1))
             return result.parsed
         raise AssertionError("unreachable")
 
-    def _log(self, purpose, model, task_id, source, *, success: bool, error: str | None = None) -> None:
-        """Written in its own transaction so the record survives a later rollback."""
+    def _log(self, purpose, model, task_id, source, *, success: bool, error: str | None = None,
+             prompt: tuple[str, str] | None = None, response: str | None = None) -> None:
+        """Written in its own transaction so the record survives a later rollback.
+        The prompt and reply are kept only when debug logging is on."""
+        debug = self.settings.debug_log_calls
         tokens_in = getattr(source, "input_tokens", 0) or 0
         tokens_out = getattr(source, "output_tokens", 0) or 0
         with session_scope(self.session_factory) as session:
@@ -182,6 +188,8 @@ class Gateway:
                 input_tokens=tokens_in, output_tokens=tokens_out,
                 cost_usd=cost_usd(model, tokens_in, tokens_out),
                 success=success, error=error,
+                prompt=f"# System\n{prompt[0]}\n\n{prompt[1]}" if debug and prompt else None,
+                response=response if debug else None,
             ))
 
 

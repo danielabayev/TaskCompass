@@ -178,7 +178,8 @@ class Retro(UserOwned, Base):
 
 
 class LlmCall(UserOwned, Base):
-    """One model call: tokens, cost and result. Never stores the key or the prompt."""
+    """One model call: tokens, cost and result. Never stores the key. The prompt
+    and reply are stored only with DEBUG_LOG_CALLS on (see config.Settings)."""
 
     __tablename__ = "llm_calls"
 
@@ -191,6 +192,8 @@ class LlmCall(UserOwned, Base):
     cost_usd: Mapped[float] = mapped_column(Numeric(10, 6), default=0)
     success: Mapped[bool] = mapped_column(Boolean)
     error: Mapped[str | None] = mapped_column(String(200))
+    prompt: Mapped[str | None] = mapped_column(Text)  # system + user text, debug only
+    response: Mapped[str | None] = mapped_column(Text)  # the reply as JSON, debug only
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, index=True
     )

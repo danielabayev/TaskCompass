@@ -268,3 +268,31 @@ def test_answer_on_a_finished_interview_is_rejected(setup):
     task_id = svc.start("לכתוב מייל")
     with pytest.raises(FlowError):
         svc.answer(task_id, "עוד משהו")
+
+
+def test_prompt_and_reply_are_not_stored_by_default(setup):
+    fake, svc, factory = setup
+    fake.queue("judge", judged())
+    fake.queue("ask", question())
+    svc.start("משהו")
+    s = factory()
+    assert all(c.prompt is None and c.response is None for c in s.scalars(select(LlmCall)))
+    s.close()
+
+
+def test_debug_logging_stores_prompt_and_reply(session_factory):
+    fake, gateway = make_gateway(session_factory, debug=True)
+    svc = InterviewService(gateway, session_factory)
+    fake.queue("judge", judged(deliverable="מייל למנהל"))
+    fake.queue("ask", question("מה המבחן?"))
+    task_id = svc.start("לכתוב מייל")
+    fake.queue("judge", InvalidAnswer("bad json"), judged(deliverable="מייל למנהל"))
+    fake.queue("ask", question())
+    svc.answer(task_id, "מייל למנהל")
+    s = session_factory()
+    judge, ask, rejected = s.scalars(select(LlmCall).order_by(LlmCall.id)).all()[:3]
+    assert "# System" in judge.prompt and "לכתוב מייל" in judge.prompt
+    assert "מייל למנהל" in judge.response  # Hebrew stored as is, not \u escapes
+    assert "מה המבחן?" in ask.response
+    assert not rejected.success and rejected.response == "bad json" and rejected.prompt
+    s.close()

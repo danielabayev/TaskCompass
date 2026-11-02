@@ -75,3 +75,7 @@ fieldset.choice-details { margin-inline-start: 1.5rem; }
 /* Checkpoint: show the details of the chosen way to continue only. */
 .choice-details { display: none; }
 label:has(> input:checked) + .choice-details { display: block; }
+
+/* Debug call log: prompts mix Hebrew and English, keep line breaks. */
+pre.log { white-space: pre-wrap; unicode-bidi: plaintext; text-align: start; max-block-size: 30rem; overflow: auto; }
+.error-text { color: var(--fail); }

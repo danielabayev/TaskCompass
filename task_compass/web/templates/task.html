@@ -2,4 +2,5 @@
 {% block title %}{{ task.title }} · {{ ui.app_name }}{% endblock %}
 {% block content %}
 {% include "partials/stage.html" %}
+<p class="muted"><a href="{{ url_for('web.task_calls', task_id=task.id) }}">{{ ui.calls_link }}</a></p>
 {% endblock %}

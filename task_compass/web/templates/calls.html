@@ -1,0 +1,24 @@
+{# Model calls of one task, oldest first. Prompt and reply exist only when
+   DEBUG_LOG_CALLS was on at the time of the call. #}
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ ui.calls_title }}: <a href="{{ url_for('web.task_page', task_id=task.id) }}"><bdi>{{ task.title }}</bdi></a></h2>
+{% if not debug_on %}<p class="note">{{ ui.calls_debug_off }}</p>{% endif %}
+{% for call in calls %}
+  <article>
+    <header>
+      <bdi>{{ call.created_at.astimezone().strftime("%d/%m %H:%M:%S") }} · {{ call.purpose }} · {{ call.model }}</bdi>
+      · <bdi>{{ call.input_tokens }}+{{ call.output_tokens }} tokens · ${{ "%.4f" | format(call.cost_usd) }}</bdi>
+      {% if not call.success %}<span class="error-text">· {{ call.error }}</span>{% endif %}
+    </header>
+    {% if call.prompt or call.response %}
+      <details><summary>{{ ui.calls_prompt }}</summary><pre class="log">{{ call.prompt }}</pre></details>
+      <details open><summary>{{ ui.calls_response }}</summary><pre class="log">{{ call.response }}</pre></details>
+    {% else %}
+      <p class="muted">{{ ui.calls_not_logged }}</p>
+    {% endif %}
+  </article>
+{% else %}
+  <p>{{ ui.calls_empty }}</p>
+{% endfor %}
+{% endblock %}

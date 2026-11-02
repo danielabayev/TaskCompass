@@ -31,7 +31,12 @@ nothing to activate.
 The database also gets a separate `<POSTGRES_DB>_test` database for pytest,
 created automatically the first time the Docker volume is created.
 
-After pulling changes, run `uv sync` again. To add a package:
+After pulling changes, run `uv sync` and `uv run alembic upgrade head` again.
+
+Debugging the model: set `DEBUG_LOG_CALLS=true` in `.env` and restart. Every
+model call then also stores its full prompt and reply, shown on each task page
+under "קריאות למודל במשימה הזו". It stores everything you type, so it is off by
+default. To add a package:
 `uv add <name>` (or `uv add --dev <name>` for a test tool); this
 updates `pyproject.toml` and `uv.lock` together.
 

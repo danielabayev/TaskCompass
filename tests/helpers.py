@@ -41,8 +41,9 @@ def proposal(*minutes: int) -> Proposal:
                     rationale="הערכה")
 
 
-def make_gateway(session_factory, cap: float = 10.0):
+def make_gateway(session_factory, cap: float = 10.0, debug: bool = False):
     from task_compass.config import Settings
 
     fake = FakeClient()
-    return fake, Gateway(fake, session_factory, Settings(anthropic_api_key="", monthly_cost_cap_usd=cap))
+    settings = Settings(anthropic_api_key="", monthly_cost_cap_usd=cap, debug_log_calls=debug)
+    return fake, Gateway(fake, session_factory, settings)

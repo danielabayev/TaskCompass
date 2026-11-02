@@ -14,7 +14,7 @@ from task_compass.domain import execution
 from task_compass.errors import FlowError
 from task_compass.interview.service import is_pending, open_turn
 from task_compass.llm.gateway import LLMError
-from task_compass.models import Category, Task, TaskStatus
+from task_compass.models import Category, LlmCall, Task, TaskStatus
 from task_compass.services import reports
 from task_compass.services.estimate import estimate_step
 from task_compass.services.execution import deadline_of
@@ -74,6 +74,18 @@ def stage(task_id: int):
 def history():
     with session_scope(services().session_factory) as session:
         return render_template("history.html", tasks=reports.history(session))
+
+
+@bp.get("/tasks/<int:task_id>/calls")
+def task_calls(task_id: int):
+    """Every model call for one task, with the prompt and reply when debug logging was on."""
+    with session_scope(services().session_factory) as session:
+        task = session.get(Task, task_id)
+        if task is None:
+            abort(404)
+        calls = session.scalars(select(LlmCall).where(LlmCall.task_id == task_id).order_by(LlmCall.id)).all()
+        return render_template("calls.html", task=task, calls=calls,
+                               debug_on=services().settings.debug_log_calls)
 
 
 @bp.get("/spend")

@@ -291,3 +291,14 @@ def test_double_submit_does_not_answer_the_next_question(env):
     s = factory()
     assert [t.answer for t in s.get(Task, 1).turns] == ["מייל", None]
     s.close()
+
+
+def test_calls_page_lists_the_task_calls(env):
+    fake, client, factory = env
+    fake.queue("judge", judged())
+    fake.queue("ask", question())
+    client.post("/tasks", data={"opening": "לכתוב מייל"})
+    page = client.get("/tasks/1/calls").get_data(as_text=True)
+    assert "judge" in page and "ask" in page
+    assert "DEBUG_LOG_CALLS" in page  # debug is off in this test: says how to turn it on
+    assert client.get("/tasks/99/calls").status_code == 404

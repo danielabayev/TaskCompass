@@ -60,6 +60,11 @@ class Settings:
     monthly_cost_cap_usd: float = field(
         default_factory=lambda: float(_env("MONTHLY_COST_CAP_USD", "10"))
     )
+    # Debug: also store the full prompt and reply of every model call
+    # (DEBUG_LOG_CALLS=true in .env). Off by default: it stores everything you type.
+    debug_log_calls: bool = field(
+        default_factory=lambda: _env("DEBUG_LOG_CALLS").lower() in ("1", "true", "yes")
+    )
     # Seconds per model call before it is treated as a network failure.
     llm_timeout_s: float = 90.0
     # Automatic retries (with growing waits) on overload, rate limit, network.
