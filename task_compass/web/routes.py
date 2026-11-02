@@ -5,7 +5,7 @@ or redirect to the task page (plain form post). Errors are shown inside the
 stage with the person's input kept.
 """
 
-from flask import Blueprint, abort, current_app, redirect, render_template, request, url_for
+from flask import Blueprint, abort, current_app, jsonify, redirect, render_template, request, url_for
 from sqlalchemy import select
 
 from task_compass import config, texts_he
@@ -213,6 +213,95 @@ def retro(task_id: int):
     return _action(task_id, lambda: services().retro.submit(
         task_id, cause=form.get("cause", ""), definition_gap=form.get("definition_gap", ""),
         lesson=form.get("lesson", ""), too_simple=too_simple, hindsight_min=form.get("hindsight")))
+
+
+# --- manage tasks: delete, nest, group ------------------------------------------------
+
+def _manage_page(error: str | None = None):
+    sections = services().manage.tree()
+
+    def flat(nodes):
+        for n in nodes:
+            yield n.task
+            yield from flat(n.children)
+
+    tasks = sorted((t for s in sections for t in flat(s.nodes)), key=lambda t: t.id)
+    groups = [s.group for s in sections if s.group]
+    return render_template("manage.html", sections=sections, tasks=tasks, groups=groups, error=error), 400 if error else 200
+
+
+def _manage_action(fn):
+    try:
+        fn()
+    except FlowError as exc:
+        return _manage_page(exc.message_he)
+    return redirect(url_for("web.manage"))
+
+
+@bp.get("/manage")
+def manage():
+    return _manage_page()
+
+
+@bp.post("/manage/groups")
+def manage_create_group():
+    return _manage_action(lambda: services().manage.create_group(request.form.get("name", "")))
+
+
+@bp.post("/manage/groups/<int:group_id>/rename")
+def manage_rename_group(group_id: int):
+    return _manage_action(lambda: services().manage.rename_group(group_id, request.form.get("name", "")))
+
+
+@bp.post("/manage/groups/<int:group_id>/delete")
+def manage_delete_group(group_id: int):
+    return _manage_action(lambda: services().manage.delete_group(group_id))
+
+
+@bp.post("/manage/tasks/<int:task_id>/delete")
+def manage_delete_task(task_id: int):
+    return _manage_action(lambda: services().manage.delete_task(task_id))
+
+
+@bp.post("/manage/tasks/<int:task_id>/move")
+def manage_move_task(task_id: int):
+    def run():
+        parent_id = request.form.get("parent_id", type=int)
+        if parent_id:  # under another task: it also takes that task's group
+            services().manage.set_parent(task_id, parent_id)
+        else:
+            services().manage.set_parent(task_id, None)
+            services().manage.set_group(task_id, request.form.get("group_id", type=int))
+    return _manage_action(run)
+
+
+# --- focus API (the browser extension) ---------------------------------------------
+
+@bp.get("/focus")
+def focus_page():
+    return render_template("focus.html", focus=services().focus.status())
+
+
+@bp.get("/api/focus")
+def focus_status():
+    return jsonify(services().focus.status())
+
+
+@bp.post("/api/focus/history")
+def focus_history():
+    sites = (request.get_json(silent=True) or {}).get("sites")
+    return jsonify(services().focus.judge_history(sites if isinstance(sites, list) else []))
+
+
+@bp.post("/api/focus/check")
+def focus_check():
+    body = request.get_json(silent=True) or {}
+    return jsonify(services().focus.check(body.get("domain"), body.get("title") or ""))
+
+
+@bp.post("/api/focus/allow")
+def focus_allow():
+    return jsonify(services().focus.allow((request.get_json(silent=True) or {}).get("domain")))
 
 
 # --- rendering ------------------------------------------------------------------

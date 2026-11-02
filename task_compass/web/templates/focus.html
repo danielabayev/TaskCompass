@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ ui.focus_title }}</h2>
+{% if not focus.active %}
+<p class="muted">{{ ui.focus_off }}</p>
+{% else %}
+<p><a href="{{ url_for('web.task_page', task_id=focus.task_id) }}">{{ focus.task_title }}</a></p>
+{% if focus.sites %}
+<table>
+  <thead><tr><th>{{ ui.focus_col_site }}</th><th>{{ ui.focus_col_state }}</th><th>{{ ui.focus_col_reason }}</th></tr></thead>
+  <tbody>
+  {% for site in focus.sites | sort(attribute="state") %}
+    <tr><td><bdi>{{ site.domain }}</bdi></td><td>{{ ui.focus_state[site.state] }}</td><td>{{ site.reason }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted">{{ ui.focus_none }}</p>
+{% endif %}
+{% endif %}
+{% endblock %}

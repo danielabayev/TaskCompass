@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% macro task_nodes(nodes) %}
+<ul>
+  {% for node in nodes %}
+  {% set task = node.task %}
+  <li>
+    <a href="{{ url_for('web.task_page', task_id=task.id) }}"><bdi>{{ task.title }}</bdi></a>
+    <span class="muted">· {{ t.STATUS_LABELS[task.status] }}</span>
+    <details>
+      <summary>{{ ui.manage_move }} / {{ ui.manage_delete }}</summary>
+      <form method="post" action="{{ url_for('web.manage_move_task', task_id=task.id) }}">
+        <label>{{ ui.manage_group }}
+          <select name="group_id">
+            <option value="">{{ ui.manage_none }}</option>
+            {% for g in groups %}<option value="{{ g.id }}" {{ "selected" if g.id == task.group_id }}>{{ g.name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>{{ ui.manage_under }}
+          <select name="parent_id">
+            <option value="">{{ ui.manage_none }}</option>
+            {% for other in tasks if other.id != task.id %}
+            <option value="{{ other.id }}" {{ "selected" if other.id == task.parent_id }}>#{{ other.id }} {{ other.title[:40] }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <button type="submit">{{ ui.manage_move }}</button>
+      </form>
+      <form method="post" action="{{ url_for('web.manage_delete_task', task_id=task.id) }}"
+            onsubmit="return confirm('{{ ui.manage_confirm_task }}')">
+        <button type="submit" class="secondary">{{ ui.manage_delete }}</button>
+      </form>
+    </details>
+    {% if node.children %}{{ task_nodes(node.children) }}{% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+
+{% block content %}
+<h2>{{ ui.manage_title }}</h2>
+<p class="muted">{{ ui.manage_hint }}</p>
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+<form method="post" action="{{ url_for('web.manage_create_group') }}">
+  <label>{{ ui.manage_new_group }}
+    <input name="name" placeholder="{{ ui.manage_group_name }}" required maxlength="80">
+  </label>
+  <button type="submit">{{ ui.manage_add_group }}</button>
+</form>
+
+{% for section in sections %}
+<article>
+  {% if section.group %}
+  <h3><bdi>{{ section.group.name }}</bdi></h3>
+  <details>
+    <summary>{{ ui.manage_rename }} / {{ ui.manage_delete_group }}</summary>
+    <form method="post" action="{{ url_for('web.manage_rename_group', group_id=section.group.id) }}">
+      <input name="name" value="{{ section.group.name }}" required maxlength="80">
+      <button type="submit">{{ ui.manage_rename }}</button>
+    </form>
+    <form method="post" action="{{ url_for('web.manage_delete_group', group_id=section.group.id) }}"
+          onsubmit="return confirm('{{ ui.manage_confirm_group }}')">
+      <button type="submit" class="secondary">{{ ui.manage_delete_group }}</button>
+    </form>
+  </details>
+  {% else %}
+  <h3>{{ ui.manage_ungrouped }}</h3>
+  {% endif %}
+  {% if section.nodes %}{{ task_nodes(section.nodes) }}{% else %}<p class="muted">{{ ui.manage_empty }}</p>{% endif %}
+</article>
+{% endfor %}
+{% endblock %}

@@ -13,7 +13,7 @@ from sqlalchemy import text
 from task_compass import config
 from task_compass.db import get_engine, make_session_factory
 
-DATA_TABLES = ["llm_calls", "retros", "checkpoints", "interview_turns", "tasks"]
+DATA_TABLES = ["site_verdicts", "llm_calls", "retros", "checkpoints", "interview_turns", "tasks", "task_groups"]
 
 
 @pytest.fixture(scope="session")

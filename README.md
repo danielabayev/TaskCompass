@@ -52,6 +52,21 @@ updates `pyproject.toml` and `uv.lock` together.
 | Fast tests (scripted model, free) | `uv run pytest` |
 | Real-model behavior run (costs money) | `uv run python -m scripts.run_behavior_live` |
 
+## Focus extension (Chrome)
+
+While a task is **in progress** (running, or past its time and waiting at the checkpoint), the extension blocks sites that do not help it. Once the task is finished or
+stopped, or if none is in progress, nothing is blocked. The extension sends only the domain and page title
+(never the full URL) of the last 50 history entries and of each new site you open to
+the local app, which asks the model; verdicts are stored per task (`site_verdicts`),
+and every block lifts when the task is finished.
+
+1. `uv run alembic upgrade head`, then start the app as usual (it must run on `127.0.0.1:5000`).
+2. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and pick the `extension/` folder.
+3. Start a task (the "run" step). Opening a site the model judged unhelpful shows a popup;
+   **OK** returns the tab to the last page that was not blocked, **I need this site** lets it through for the rest of the task.
+
+If the app or the model is unreachable, nothing is blocked. The app's own address is never blocked.
+
 ## How the code is organized
 
 ```

@@ -1,6 +1,6 @@
 """The single entry point to the language model.
 
-The rest of the app calls Gateway.judge / ask / breakdown / propose and gets validated
+The rest of the app calls Gateway.judge / ask / breakdown / propose / judge_sites and gets validated
 pydantic objects back, or an LLMError with a Hebrew message. The gateway:
 - refuses to call the model once the month's spend reached the local cap,
 - logs every call (model, tokens, cost, success) in llm_calls,
@@ -21,7 +21,7 @@ from sqlalchemy.orm import sessionmaker
 
 from task_compass import config, texts_he
 from task_compass.db import session_scope
-from task_compass.llm.schemas import Breakdown, JudgeResult, Proposal, Question
+from task_compass.llm.schemas import Breakdown, JudgeResult, Proposal, Question, SiteVerdicts
 from task_compass.models import LlmCall
 
 T = TypeVar("T", bound=BaseModel)
@@ -153,6 +153,18 @@ class Gateway:
                 raise InvalidAnswer("Give a positive number of minutes for the whole task.")
 
         return self._call("propose", config.STRONG_MODEL, load_prompt("propose"), user, Proposal, task_id, sane)
+
+    def judge_sites(self, *, task_id: int | None, task: dict, sites: list[dict]) -> SiteVerdicts:
+        """Decide which sites (domain + page title only) help the running task."""
+        user = _sections(("Running task", _json(task)), ("Sites to judge", _json(sites)))
+        wanted = {s["domain"] for s in sites}
+
+        def covers_all(v: SiteVerdicts) -> None:
+            missing = wanted - {s.domain for s in v.sites}
+            if missing:
+                raise InvalidAnswer(f"Missing a verdict for: {', '.join(sorted(missing))}.")
+
+        return self._call("sites", config.SMALL_MODEL, load_prompt("sites"), user, SiteVerdicts, task_id, covers_all)
 
     # --- shared machinery ---------------------------------------------------
 

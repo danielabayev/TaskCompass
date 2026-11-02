@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Task Compass - מיקוד",
+  "version": "0.1.0",
+  "description": "חוסם אתרים שלא עוזרים למשימה שרצה כרגע ב-Task Compass.",
+  "permissions": ["history", "tabs", "storage", "webNavigation", "scripting", "alarms"],
+  "host_permissions": ["http://127.0.0.1:5000/*", "http://*/*", "https://*/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Task Compass - מיקוד", "default_popup": "popup.html" }
+}

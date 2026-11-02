@@ -36,3 +36,13 @@ class Breakdown(BaseModel):
 class Proposal(BaseModel):
     minutes: int = Field(description="Realistic minutes for the whole task, all subtasks together.")
     rationale: str = Field(description="One or two Hebrew sentences on what drives the estimate.")
+
+
+class SiteVerdict(BaseModel):
+    domain: str = Field(description="The domain exactly as given in the input.")
+    useful: bool = Field(description="True when visiting this site can help finish the task.")
+    reason: str = Field(description="One short Hebrew sentence on why the site helps or distracts.")
+
+
+class SiteVerdicts(BaseModel):
+    sites: list[SiteVerdict] = Field(description="One verdict per input domain.")

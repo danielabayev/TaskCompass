@@ -51,3 +51,11 @@ def make_gateway(session_factory, cap: float = 10.0, debug: bool = False):
     fake = FakeClient()
     settings = Settings(anthropic_api_key="", monthly_cost_cap_usd=cap, debug_log_calls=debug)
     return fake, Gateway(fake, session_factory, settings)
+
+
+def site_verdicts(**useful: bool):
+    """A focus-mode model answer: site_verdicts(**{"docs.python.org": True, "youtube.com": False})."""
+    from task_compass.llm.schemas import SiteVerdict, SiteVerdicts
+
+    return SiteVerdicts(sites=[SiteVerdict(domain=d, useful=u, reason="עוזר" if u else "הסחת דעת")
+                               for d, u in useful.items()])

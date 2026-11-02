@@ -10,6 +10,8 @@ from task_compass.interview.service import InterviewService
 from task_compass.llm.gateway import Gateway, LLMClient
 from task_compass.services.estimate import EstimateService
 from task_compass.services.execution import ExecutionService
+from task_compass.services.focus import FocusService
+from task_compass.services.manage import ManageService
 from task_compass.services.retro import RetroService
 
 
@@ -21,6 +23,8 @@ class Services:
     estimate: EstimateService
     execution: ExecutionService
     retro: RetroService
+    focus: FocusService
+    manage: ManageService
 
 
 def build_services(client: LLMClient | None = None, session_factory: sessionmaker | None = None,
@@ -40,4 +44,6 @@ def build_services(client: LLMClient | None = None, session_factory: sessionmake
         estimate=EstimateService(gateway, session_factory),
         execution=ExecutionService(session_factory, retro),
         retro=retro,
+        focus=FocusService(gateway, session_factory),
+        manage=ManageService(session_factory),
     )

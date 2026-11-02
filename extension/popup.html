@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font-family: system-ui, sans-serif; width: 260px; margin: 12px; line-height: 1.5; }
+    #title { font-weight: 600; }
+    #state, #blocked, #error { margin: 6px 0; }
+    #sites { padding: 0; list-style: none; max-height: 220px; overflow: auto; }
+    #sites li { margin: 4px 0; }
+    .blocked { color: #b42318; }
+    #error { color: #b42318; }
+    button { font: inherit; padding: 6px 12px; }
+  </style>
+</head>
+<body>
+  <div id="state"></div>
+  <div id="title"></div>
+  <div id="blocked"></div>
+  <div id="error"></div>
+  <ul id="sites"></ul>
+  <button id="refresh"></button>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

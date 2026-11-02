@@ -48,6 +48,16 @@ class Category(UserOwned, Base):
     active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
+class TaskGroup(UserOwned, Base):
+    """A named bundle of tasks the person arranges on the manage screen."""
+
+    __tablename__ = "task_groups"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class TaskStatus:
     """Where a task is in the flow. Stored as a plain string."""
 
@@ -73,6 +83,8 @@ class Task(UserOwned, Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("tasks.id"))
+    # A sub-task always sits in its parent's group (kept by services/manage.py).
+    group_id: Mapped[int | None] = mapped_column(ForeignKey("task_groups.id", ondelete="SET NULL"))
     status: Mapped[str] = mapped_column(String(20), default=TaskStatus.INTERVIEW)
     outcome: Mapped[str | None] = mapped_column(String(20))
     opening_text: Mapped[str] = mapped_column(Text)
@@ -202,3 +214,24 @@ class LlmCall(UserOwned, Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, index=True
     )
+
+
+class SiteVerdict(UserOwned, Base):
+    """Whether a site helps one running task. The browser extension blocks the
+    sites with useful = false until the task ends; `allowed_by_user` is the
+    "I need this site" way out and wins over the model."""
+
+    __tablename__ = "site_verdicts"
+    __table_args__ = (UniqueConstraint("task_id", "domain"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    task_id: Mapped[int] = mapped_column(ForeignKey("tasks.id"), index=True)
+    domain: Mapped[str] = mapped_column(String(255))
+    useful: Mapped[bool] = mapped_column(Boolean)
+    reason: Mapped[str | None] = mapped_column(Text)
+    allowed_by_user: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    @property
+    def blocked(self) -> bool:
+        return not self.useful and not self.allowed_by_user

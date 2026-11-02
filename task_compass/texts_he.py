@@ -58,6 +58,33 @@ UI = {
     "nav_home": "משימות",
     "nav_history": "היסטוריה",
     "nav_spend": "הוצאה חודשית",
+    "nav_focus": "מיקוד",
+    "nav_manage": "ניהול משימות",
+    "manage_title": "ניהול משימות",
+    "manage_hint": "אפשר לקבץ משימות לקבוצות, להכניס משימה מתחת לאחרת או למחוק. תת־משימה תמיד נמצאת בקבוצה של האב שלה, ומחיקת משימה מעבירה את תת־המשימות שלה רמה אחת למעלה.",
+    "manage_new_group": "קבוצה חדשה",
+    "manage_group_name": "שם הקבוצה",
+    "manage_add_group": "הוסף קבוצה",
+    "manage_ungrouped": "ללא קבוצה",
+    "manage_empty": "אין משימות כאן.",
+    "manage_rename": "שנה שם",
+    "manage_delete_group": "מחק קבוצה",
+    "manage_confirm_group": "למחוק את הקבוצה? המשימות שבה יישארו, בלי קבוצה.",
+    "manage_group": "קבוצה",
+    "manage_under": "מתחת למשימה",
+    "manage_none": "(ללא)",
+    "manage_move": "שמור",
+    "manage_delete": "מחק",
+    "manage_confirm_task": "למחוק את המשימה לצמיתות, כולל הראיון וההיסטוריה שלה? תת־המשימות שלה יעלו רמה אחת.",
+    "focus_title": "אתרים במיקוד",
+    "focus_off": "אין משימה בביצוע, ולכן שום אתר לא חסום.",
+    "focus_none": "עוד לא נבדק אף אתר. אתרים נבדקים בהיסטוריה כשהמשימה מתחילה, ואתר חדש נבדק כשנכנסים אליו.",
+    "focus_blocked": "חסומים",
+    "focus_allowed": "מותרים",
+    "focus_col_site": "אתר",
+    "focus_col_state": "מצב",
+    "focus_col_reason": "הסיבה",
+    "focus_state": {"blocked": "חסום", "allowed": "מותר", "allowed_by_user": "הותר על ידך"},
     "new_task_title": "משימה חדשה",
     "new_task_hint": "כתוב את המשימה כמו שהיא בראש שלך, גם אם היא עמומה.",
     "new_task_button": "להתחיל להגדיר",
@@ -200,5 +227,10 @@ OUTCOME_LABELS = {
     "investigate": "הועברה לתחקור",
 }
 
-PURPOSE_LABELS = {"judge": "בדיקת הכרטיס", "ask": "שאלות הראיון", "breakdown": "פירוק לתת־משימות", "propose": "הצעת זמן"}
+PURPOSE_LABELS = {"judge": "בדיקת הכרטיס", "ask": "שאלות הראיון", "breakdown": "פירוק לתת־משימות", "propose": "הצעת זמן",
+                 "sites": "בדיקת אתרים (מיקוד)"}
+ERROR_GROUP_NAME = "צריך לתת לקבוצה שם."
+ERROR_NO_GROUP = "הקבוצה לא נמצאה."
+ERROR_PARENT_SELF = "משימה לא יכולה להיות מתחת לעצמה."
+ERROR_PARENT_CYCLE = "אי אפשר להכניס משימה מתחת לאחת מתת־המשימות שלה."
 ERROR_STALE_ANSWER = "השאלה הזאת כבר נענתה (אולי נשלח פעמיים). הנה השאלה הנוכחית."
