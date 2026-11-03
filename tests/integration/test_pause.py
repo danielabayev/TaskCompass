@@ -81,3 +81,13 @@ def test_only_a_running_task_can_pause_and_only_a_paused_one_resume(env):
     assert "הפעולה הזאת לא מתאימה" in client.post("/tasks/1/resume", headers=HX).text
     client.post("/tasks/1/pause", headers=HX)
     assert "הפעולה הזאת לא מתאימה" in client.post("/tasks/1/pause", headers=HX).text
+
+
+def test_confirmed_subtasks_stay_on_the_card_through_the_process(env):
+    client, factory = env
+    for url in ("/tasks/1",):
+        assert "פירוק לתת־משימות" in client.get(url).text and "חלק 2" in client.get(url).text  # running
+    client.post("/tasks/1/pause", headers=HX)
+    assert "חלק 2" in client.get("/tasks/1").text  # paused
+    client.post("/tasks/1/finish", headers=HX)
+    assert "חלק 2" in client.get("/tasks/1").text  # retro / closed

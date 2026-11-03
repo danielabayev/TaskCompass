@@ -30,4 +30,11 @@
       {% if status == "fail" and verdict.get("reason") %}<div class="reason">{{ verdict.reason }}</div>{% endif %}
     </div>
   {% endfor %}
+  {# The confirmed subtasks stay on the card for the rest of the process (the estimate screen edits them itself). #}
+  {% if task.breakdown_confirmed and task.breakdown and task.status != "estimate" %}
+    <div class="card-field">
+      <span class="label">{{ ui.breakdown_title }}:</span>
+      <ul class="list-subtasks">{% for title in task.breakdown %}<li><bdi>{{ title }}</bdi></li>{% endfor %}</ul>
+    </div>
+  {% endif %}
 </article>
