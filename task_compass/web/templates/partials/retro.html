@@ -3,6 +3,9 @@
   <div>
     <h2>{{ ui.retro_title }}</h2>
     {{ error_box(error) }}
+    {% if review_pending %}
+    {% include "partials/review.html" %}
+    {% else %}
     {% include "partials/numbers.html" %}
     <p>{{ {"over": ui.direction_over, "under": ui.direction_under}.get(retro_plan.direction, ui.direction_on) }}</p>
     <form {{ hx(url_for('web.retro', task_id=task.id)) }}>
@@ -19,6 +22,7 @@
       <label>{{ ui.q_lesson }}<textarea name="lesson" rows="2">{{ form.get("lesson", "") }}</textarea></label>
       <button type="submit">{{ ui.retro_button }}</button>
     </form>
+    {% endif %}
   </div>
   {% include "partials/card.html" %}
 </div>

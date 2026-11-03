@@ -5,7 +5,7 @@
 <table>
   <thead><tr>
     <th>{{ ui.col_task }}</th><th>{{ ui.col_type }}</th><th>{{ ui.col_status }}</th>
-    <th>{{ ui.col_blind }}</th><th>{{ ui.col_binding }}</th><th>{{ ui.col_actual }}</th><th>{{ ui.col_ratio }}</th>
+    <th>{{ ui.col_blind }}</th><th>{{ ui.col_binding }}</th><th>{{ ui.col_actual }}</th><th>{{ ui.col_ratio }}</th><th>{{ ui.col_breakdown }}</th>
   </tr></thead>
   <tbody>
   {% for task in tasks %}
@@ -18,6 +18,8 @@
       <td>{{ task.binding_estimate_min | minutes }}</td>
       <td>{{ task.actual_min | minutes }}{% if task.shortened_in_hindsight %} <span class="muted">({{ ui.shortened }})</span>{% endif %}</td>
       <td>{% if task.actual_min and task.blind_estimate_min %}<bdi>{{ "%.2f" | format(task.actual_min / task.blind_estimate_min) }}</bdi>{% endif %}</td>
+      <td>{% if task.breakdown_review %}{% set q = quality(task.breakdown_review) %}<bdi>{{ q.done }}/{{ q.planned }}</bdi>
+        {% if q.unneeded %}<span class="muted">· −{{ q.unneeded }}</span>{% endif %}{% if q.missing %}<span class="muted">· +{{ q.missing }}</span>{% endif %}{% endif %}</td>
     </tr>
   {% endfor %}
   </tbody>

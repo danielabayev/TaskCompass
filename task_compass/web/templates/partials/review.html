@@ -1,0 +1,17 @@
+{# After the task ends: was the breakdown into subtasks right? #}
+<h3>{{ ui.review_title }}</h3>
+<p class="muted">{{ ui.review_hint }}</p>
+<form {{ hx(url_for('web.breakdown_review', task_id=task.id)) }}>
+  {% for title in task.breakdown %}
+  {% set i = loop.index0 %}
+  <fieldset>
+    <legend><bdi>{{ title }}</bdi></legend>
+    {% for value, label in t.REVIEW_VERDICTS.items() %}
+    <label><input type="radio" name="verdict_{{ i }}" value="{{ value }}" required
+      {% if form.get('verdict_' ~ i) == value %}checked{% endif %}> {{ label }}</label>
+    {% endfor %}
+  </fieldset>
+  {% endfor %}
+  <label>{{ ui.review_missing }}<textarea name="missing" rows="3">{{ form.get("missing", "") }}</textarea></label>
+  <button type="submit">{{ ui.review_button }}</button>
+</form>

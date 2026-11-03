@@ -48,6 +48,12 @@ def confirm_breakdown(fake, client, n=1):
     client.post("/tasks/1/breakdown", data={"title": breakdown(n).subtasks, "action": "confirm"}, headers=HX)
 
 
+def review_breakdown(client, factory, task_id=1, verdict="done", missing=""):
+    """Answer the breakdown review that comes before the retrospective."""
+    data = {f"verdict_{i}": verdict for i in range(len(task_row(factory, task_id).breakdown))}
+    return client.post(f"/tasks/{task_id}/review", data={**data, "missing": missing}, headers=HX)
+
+
 def to_planned(fake, client, factory, blind=30, model=(20, 15), binding=40):
     fake.queue("judge", judged(type_key="write", deliverable=GOOD_CARD["deliverable"]))
     fake.queue("ask", question("מה המבחן?"))
@@ -90,6 +96,8 @@ def test_happy_path_on_time_closes_with_short_retro(env):
     client.post("/tasks/1/start", headers=HX)
     shift_start(factory, 39)
     r = client.post("/tasks/1/finish", headers=HX)
+    assert task_row(factory).status == "retro" and "בדיקת הפירוק" in r.text  # the breakdown is reviewed first
+    r = review_breakdown(client, factory)
     t = task_row(factory)
     assert t.status == "closed" and t.actual_min == 40 and t.retro.kind == "short"
     assert "בלי שאלות" in r.text
@@ -213,6 +221,7 @@ def test_checkpoint_extend_once_then_stop_and_deep_retro(env):
     client.post("/tasks/1/checkpoint", headers=HX, data={"choice": "stop", "cause": "נגמר הכוח"})
     t = task_row(factory)
     assert t.status == "retro" and t.outcome == "stopped" and t.blind_estimate_min == 30
+    review_breakdown(client, factory, verdict="weak", missing="לשלוח תזכורת")
     r = client.post("/tasks/1/retro", headers=HX, data={"cause": "הפרעות", "definition_gap": "", "lesson": "לחסום זמן"})
     t = task_row(factory)
     assert t.status == "closed" and t.retro.kind == "deep" and t.retro.lesson == "לחסום זמן"
@@ -254,7 +263,8 @@ def test_under_estimate_asks_too_simple_and_shortens_in_hindsight(env):
     to_planned(fake, client, factory, blind=30, binding=60)
     client.post("/tasks/1/start", headers=HX)
     shift_start(factory, 19)
-    r = client.post("/tasks/1/finish", headers=HX)
+    client.post("/tasks/1/finish", headers=HX)
+    r = review_breakdown(client, factory)
     assert "פשוטה מדי" in r.text
     r = client.post("/tasks/1/retro", headers=HX, data={"too_simple": "yes", "hindsight": "25", "cause": "", "definition_gap": "", "lesson": ""})
     assert "קצר מהזמן שנמדד" in r.text  # 25 is not below the measured 20

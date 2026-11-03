@@ -11,6 +11,7 @@ from sqlalchemy import select
 from task_compass import config, texts_he
 from task_compass.db import session_scope
 from task_compass.domain import execution
+from task_compass.domain.breakdown_review import quality as breakdown_quality
 from task_compass.errors import FlowError
 from task_compass.interview.service import is_pending, open_turn
 from task_compass.llm.gateway import LLMError
@@ -18,7 +19,7 @@ from task_compass.models import Category, LlmCall, Task, TaskStatus
 from task_compass.services import reports
 from task_compass.services.estimate import estimate_step
 from task_compass.services.execution import deadline_of
-from task_compass.services.retro import plan_for
+from task_compass.services.retro import plan_for, review_pending
 
 bp = Blueprint("web", __name__)
 
@@ -216,6 +217,16 @@ def checkpoint(task_id: int):
     return _action(task_id, run)
 
 
+@bp.post("/tasks/<int:task_id>/review")
+def breakdown_review(task_id: int):
+    form = request.form
+    with session_scope(services().session_factory) as session:
+        task = session.get(Task, task_id)
+        count = len(task.breakdown or []) if task else 0
+    return _action(task_id, lambda: services().retro.submit_breakdown_review(
+        task_id, [form.get(f"verdict_{i}", "") for i in range(count)], form.get("missing", "")))
+
+
 @bp.post("/tasks/<int:task_id>/retro")
 def retro(task_id: int):
     form = request.form
@@ -348,6 +359,7 @@ def _render(task_id: int, *, full_page: bool = False, error: str | None = None, 
         if task.status in (TaskStatus.RUNNING, TaskStatus.CHECKPOINT):
             ctx["deadline"] = deadline_of(task)
             ctx["allowed_choices"] = execution.allowed_choices([c.choice for c in task.checkpoints])
+        ctx["review_pending"] = review_pending(task)
         if task.status == TaskStatus.RETRO or (task.retro and task.actual_min):
             ctx["retro_plan"] = plan_for(task)
         template = "task.html" if full_page else "partials/stage.html"
@@ -358,4 +370,4 @@ def _render(task_id: int, *, full_page: bool = False, error: str | None = None, 
 
 @bp.app_context_processor
 def inject_texts():
-    return {"ui": texts_he.UI, "t": texts_he, "max_rounds": config.MAX_INTERVIEW_ROUNDS}
+    return {"ui": texts_he.UI, "t": texts_he, "quality": breakdown_quality, "max_rounds": config.MAX_INTERVIEW_ROUNDS}

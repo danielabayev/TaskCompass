@@ -34,7 +34,12 @@
   {% if task.breakdown_confirmed and task.breakdown and task.status != "estimate" %}
     <div class="card-field">
       <span class="label">{{ ui.breakdown_title }}:</span>
+      {% if task.breakdown_review %}
+      <ul class="list-subtasks">{% for item in task.breakdown_review["items"] %}<li><bdi>{{ item.title }}</bdi> <span class="muted">({{ t.REVIEW_VERDICTS[item.verdict] }})</span></li>{% endfor %}
+        {% for title in task.breakdown_review["missing"] %}<li><bdi>{{ title }}</bdi> <span class="muted">({{ ui.review_was_missing }})</span></li>{% endfor %}</ul>
+      {% else %}
       <ul class="list-subtasks">{% for title in task.breakdown %}<li><bdi>{{ title }}</bdi></li>{% endfor %}</ul>
+      {% endif %}
     </div>
   {% endif %}
 </article>

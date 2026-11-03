@@ -8,7 +8,7 @@ C. big:    the lesson reaches its interview -> checkpoint -> split -> child star
 """
 
 from tests.helpers import GOOD_CARD, breakdown, judged, proposal, question
-from tests.integration.test_web_flow import HX, env, shift_start, task_row  # noqa: F401  (env is a fixture)
+from tests.integration.test_web_flow import HX, env, review_breakdown, shift_start, task_row  # noqa: F401  (env is a fixture)
 
 
 def define(fake, client, opening, type_key):
@@ -50,8 +50,11 @@ def test_three_tasks_through_the_whole_process(env):
     client.post("/tasks/1/start", headers=HX)
     shift_start(factory, 39)  # measured time rounds up
     r = client.post("/tasks/1/finish", headers=HX)
+    assert task_row(factory).status == "retro"  # waits for the breakdown review
+    review_breakdown(client, factory)
     t = task_row(factory)
     assert t.status == "closed" and t.outcome == "completed" and t.retro.kind == "short" and t.actual_min == 40
+    assert t.breakdown_review["items"][0]["verdict"] == "done" and t.breakdown_review["missing"] == []
 
     # ---- B: gap, clarification, extension, over time, deep retro ---------------
     define(fake, client, "לתקן באג בייצוא", "build")
@@ -81,6 +84,9 @@ def test_three_tasks_through_the_whole_process(env):
     client.post("/tasks/2/finish", headers=HX)
     t = task_row(factory, 2)
     assert t.status == "retro"  # over the binding estimate: a retrospective is required
+    review_breakdown(client, factory, task_id=2, verdict="unneeded", missing="לבדוק קובץ ריק")
+    t = task_row(factory, 2)
+    assert t.status == "retro" and t.breakdown_review["missing"] == ["לבדוק קובץ ריק"]
     client.post("/tasks/2/retro", headers=HX, data={
         "cause": "מקרה קצה", "definition_gap": "לא הוגדר איך נראה קובץ ריק", "lesson": "לבדוק קבצים ריקים מראש"})
     t = task_row(factory, 2)

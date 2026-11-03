@@ -88,6 +88,8 @@ def test_hindsight_shortened_time_is_what_calibrates(session_factory, session):
         t.started_at -= timedelta(minutes=30)
         session.commit()
         svc.execution.finish(task_id)  # 30 of 60: under, asks "too simple?"
+        session.expire_all()
+        svc.retro.submit_breakdown_review(task_id, ["done"] * len(session.get(Task, task_id).breakdown), "")
         svc.retro.submit(task_id, cause="", definition_gap="", lesson="", too_simple=True, hindsight_min="15")
     session.expire_all()
     rows = session.scalars(select(Task).where(Task.outcome == "completed")).all()
