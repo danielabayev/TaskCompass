@@ -140,12 +140,14 @@ class Gateway:
         return self._call("breakdown", config.STRONG_MODEL, load_prompt("breakdown"), user, Breakdown, task_id, sane)
 
     def propose(self, *, task_id: int | None, card: dict, subtasks: list[str],
-                clarifications: list[str]) -> Proposal:
+                clarifications: list[str], history: list[dict] | None = None) -> Proposal:
         user = _sections(
             ("Task card", _json(card)),
             ("Subtasks (the person's confirmed breakdown; estimate the whole task, not each part)", _json(subtasks)),
             ("Clarifications from the person (oldest first)",
              "\n".join(f"- {c}" for c in clarifications) if clarifications else "(none)"),
+            ("Track record: finished tasks, newest first, with the estimate you gave and the real time taken",
+             _json(history) if history else "(no finished tasks yet)"),
         )
 
         def sane(p: Proposal) -> None:
