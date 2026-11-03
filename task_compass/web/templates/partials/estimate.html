@@ -17,7 +17,7 @@
         <button type="submit" name="action" value="save" hidden></button>
         {% for title in titles %}
           <div class="subtask-row" role="group">
-            <input type="text" name="title" value="{{ title }}" aria-label="{{ ui.subtask_label }} {{ loop.index }}" placeholder="{{ ui.subtask_label }}" maxlength="200">
+            <textarea name="title" rows="1" dir="auto" class="subtask-title" aria-label="{{ ui.subtask_label }} {{ loop.index }}" placeholder="{{ ui.subtask_label }}" maxlength="200">{{ title }}</textarea>
             <button type="submit" name="action" value="remove:{{ loop.index0 }}" class="secondary outline">{{ ui.subtask_remove }}</button>
           </div>
         {% endfor %}

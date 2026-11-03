@@ -82,5 +82,6 @@ pre.log { white-space: pre-wrap; unicode-bidi: plaintext; text-align: start; max
 
 /* Breakdown editor: one row per subtask, name field and remove button side by side. */
 .subtask-row { display: flex; gap: .5rem; align-items: center; margin-bottom: .5rem; }
-.subtask-row input { margin-bottom: 0; flex: 1; }
+/* A long title wraps and the box grows with it (app.js), so all of it stays visible. */
+.subtask-row textarea { margin-bottom: 0; flex: 1; min-width: 0; resize: none; overflow: hidden; }
 .subtask-row button { width: auto; margin-bottom: 0; white-space: nowrap; }

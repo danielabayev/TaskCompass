@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "demo",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "python", "-m", "scripts.serve_demo"],
+      "port": 5055
+    }
+  ]
+}

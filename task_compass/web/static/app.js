@@ -34,6 +34,34 @@ document.addEventListener("keydown", function (e) {
   box.form.requestSubmit();  // runs "required" checks and lets HTMX handle the submit
 });
 
+// Subtask titles: a one-line box that grows with its text. Enter saves the list
+// (like in a normal text field), and pasted line breaks become spaces.
+(function () {
+  function grow(box) {
+    box.style.height = "auto";
+    box.style.height = box.scrollHeight + "px";
+  }
+  function growAll() {
+    document.querySelectorAll("textarea.subtask-title").forEach(grow);
+  }
+  document.addEventListener("input", function (e) {
+    var box = e.target;
+    if (!box.classList || !box.classList.contains("subtask-title")) return;
+    if (/[\r\n]/.test(box.value)) box.value = box.value.replace(/\s*[\r\n]+\s*/g, " ");
+    grow(box);
+  });
+  document.addEventListener("keydown", function (e) {
+    var box = e.target;
+    if (e.key !== "Enter" || e.isComposing || !box.classList || !box.classList.contains("subtask-title")) return;
+    e.preventDefault();
+    var save = box.form && box.form.querySelector("button[name=action][value=save]");
+    if (save) box.form.requestSubmit(save);
+  });
+  document.addEventListener("DOMContentLoaded", growAll);
+  document.addEventListener("htmx:afterSwap", growAll);
+  window.addEventListener("resize", growAll);
+})();
+
 // When the server can't be reached (stopped, restarted) or crashes, HTMX
 // swaps nothing, so without this the page would look as if nothing happened.
 // Show the error above the form; the typed text stays in the box.
