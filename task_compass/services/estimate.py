@@ -9,7 +9,7 @@ or shown, and never overwritten.
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
-from task_compass import texts_he
+from task_compass import config, texts_he
 from task_compass.db import session_scope
 from task_compass.domain import calibration, estimates
 from task_compass.errors import FlowError
@@ -43,6 +43,22 @@ def calibration_samples(session) -> list[calibration.Sample]:
         .order_by(Task.finished_at.desc())
     ).all()
     return [calibration.Sample(*row) for row in rows]
+
+
+def model_history(session, type_key: str, limit: int = config.CALIBRATION_WINDOW) -> list[dict]:
+    """The model's own track record: its past proposals next to the real time,
+    newest first, tasks of the same type before the rest."""
+    rows = session.execute(
+        select(Category.key, Task.deliverable, Task.model_estimate_min, Task.actual_min)
+        .join(Category, Category.id == Task.category_id)
+        .where(Task.outcome == TaskOutcome.COMPLETED, Task.actual_min.is_not(None),
+               Task.model_estimate_min.is_not(None))
+        .order_by(Task.finished_at.desc())
+    ).all()
+    rows.sort(key=lambda r: r[0] != type_key)  # stable: same type first
+    return [{"type_key": k, "deliverable": d, "your_estimate_min": m, "actual_min": a,
+             "actual_vs_estimate": round(a / m, 2) if m else None}
+            for k, d, m, a in rows[:limit]]
 
 
 class EstimateService:
@@ -135,8 +151,9 @@ class EstimateService:
         with session_scope(self.session_factory) as session:
             task = get_task(session, task_id)
             card, subtasks = card_of(task), list(task.breakdown)
+            history = model_history(session, task.category.key if task.category else "")
         proposal = self.gateway.propose(task_id=task_id, card=card, subtasks=subtasks,
-                                        clarifications=clarifications)
+                                        clarifications=clarifications, history=history)
         with session_scope(self.session_factory) as session:
             task = get_task(session, task_id, TaskStatus.ESTIMATE)
             task.model_estimate_min = proposal.minutes

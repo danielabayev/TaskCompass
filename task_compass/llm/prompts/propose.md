@@ -7,3 +7,9 @@ subtasks together. Do not give a time per subtask. Include small overheads
 boundaries. Be honest rather than optimistic.
 
 Write the rationale in concise Hebrew.
+
+Learn from your track record. It lists tasks you estimated before, with the real
+time they took. If actual_vs_estimate is mostly above 1, you have been too
+optimistic; if mostly below 1, too pessimistic. Prefer the tasks of the same
+type, and scale your number by the ratio you see. Mention the adjustment in the
+rationale when you make one.
